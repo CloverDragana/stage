@@ -5,7 +5,7 @@ function Navbar(){
         { title: 'Explore', href: ''},
         { title: 'Notifications', href: ''},
         { title: 'Messages', href: ''},
-        { title: 'Settings', href: '/accountSetting'}
+        { title: 'Settings', href: '/account-setting'}
     ];
     return(
         <nav className="fixed top-16 left-0 h-screen w-42 m-0 flex flex-col bg-primary text-black text-xl shadow-lg">

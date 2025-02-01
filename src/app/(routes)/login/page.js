@@ -31,6 +31,7 @@ export default function Login() {
             </div>
             <div className="flex justify-center mt-16">
                 <div ref = {formRef} className="relative">
+                    
                     <div className="flex gap-8">
                         <button onClick={() => setView("login")} className={`text-xl px-8 py-2 rounded-full border border-white transition-colors ${view === "login" ? "bg-white text-black" : "bg-transparent text-white hover:bg-white hover:text-black"}`}>Log In</button>
                         <button onClick={() => setView("signup")} className={`text-xl px-8 py-2 rounded-full border border-white transition-colors ${view === "signup" ? "bg-white text-black" : "bg-transparent text-white hover:bg-white hover:text-black"}`}>Sign Up</button>

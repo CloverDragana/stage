@@ -15,32 +15,20 @@ function SignUpForm(){
                 username: formData.get('username'), 
                 password: formData.get('password')
             }; 
-
-            console.log("User Info being sent:", userInfo);
-        
-            if (Object.values(userInfo).some(value => !value)){
-                alert('All fields required signupn component');
-                return;
-            }
-            console.log("Sending request to API...");
          
-            const response = await fetch('/api/registerUser', { 
+            const response = await fetch('/api/register-user', { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json', }, 
                 body: JSON.stringify(userInfo), 
             }); 
-            
-            console.log("Response received:", response);
 
             const data = await response.json();
-
-            console.log("Response JSON:", data);
 
             if (!response.ok) {
                 throw new Error(data.error ||"registration failed");
             }
 
-            alert('sign up successful');
+            console.log('sign up successful');
         } catch (error){ 
             console.log('registration error', error); 
             alert('Try Again signup component'); 
