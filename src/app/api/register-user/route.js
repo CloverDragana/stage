@@ -1,29 +1,32 @@
-import pool from '@/lib/db';
+import postgresConnection from '@/lib/db';
+// import bcrypt from 'bcryptjs';
 
 export async function POST(req) {
     try {
-        const body = await req.json();
+        const signUpInfo = await req.json();
 
-        if (!body.fName || !body.lName || !body.email || !body.username || !body.password) {
+        if (!signUpInfo.fName || !signUpInfo.lName || !signUpInfo.email || !signUpInfo.username || !signUpInfo.password) {
             return new Response(JSON.stringify({ error: 'All fields are required register user file' }), { status: 400 });
         }
 
-        const fullName = `${body.fName} ${body.lName}`;
+        const fullName = `${signUpInfo.fName} ${signUpInfo.lName}`;
+        // const hashedPwd = await bcrypt.hash(password, 10);
 
-        const client = await pool.connect();
+        const pgClient = await postgresConnection.connect();
+
         try {
-            const result = await client.query(
+            const dbQuery = await pgClient.query(
                 `INSERT INTO users (fullname, email, username, password)
                 VALUES ($1, $2, $3, $4) RETURNING userid`,
-                [fullName, body.email, body.username, body.password]
+                [fullName, signUpInfo.email, signUpInfo.username, signUpInfo.password]
             );
 
             return new Response(JSON.stringify({
                 message: 'User successfully registered',
-                userId: result.rows[0].UserID,
+                userId: dbQuery.rows[0].UserID,
             }), { status: 201 });
         } finally {
-            client.release();
+            pgClient.release();
         }
     } catch (error) {
         console.error('Database query error:', error);

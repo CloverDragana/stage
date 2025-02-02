@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 
-const pool = new Pool({
+const postgresConnection = new Pool({
     user: process.env.NEXT_PUBLIC_PGUSER,
     host: process.env.NEXT_PUBLIC_PGHOST,
     database: process.env.NEXT_PUBLIC_PGDATABASE,
@@ -8,4 +8,4 @@ const pool = new Pool({
     port: process.env.NEXT_PUBLIC_PGPORT,
 });
 
-export default pool;
+export default postgresConnection;

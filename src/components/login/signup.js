@@ -18,7 +18,7 @@ function SignUpForm(){
          
             const response = await fetch('/api/register-user', { 
                 method: 'POST', 
-                headers: { 'Content-Type': 'application/json', }, 
+                headers: { 'Content-Type': 'application/json'}, 
                 body: JSON.stringify(userInfo), 
             }); 
 
