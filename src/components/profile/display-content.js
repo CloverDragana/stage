@@ -1,4 +1,4 @@
-import StarWork from "@/components/showcase/star-work";
+import StarWork from "@/components/profile/star-work";
 
 function ContentDisplay() {
     const ContentTitles = [

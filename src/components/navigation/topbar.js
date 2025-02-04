@@ -1,4 +1,6 @@
-import Search from "@/components/searchbar";
+"use client";
+
+import Search from "@/components/navigation/searchbar";
 
 function Topbar() {
     return(

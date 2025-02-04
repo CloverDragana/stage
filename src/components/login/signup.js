@@ -1,6 +1,12 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import FormRow from "@/components/login/login-form-row";
 
 function SignUpForm(){ 
+
+    const router = useRouter();
+
     const handleSignUpForm = async (event) => { 
         event.preventDefault(); 
 
@@ -16,7 +22,7 @@ function SignUpForm(){
                 password: formData.get('password')
             }; 
          
-            const response = await fetch('/api/register-user', { 
+            const response = await fetch('/api/auth/register-user', { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json'}, 
                 body: JSON.stringify(userInfo), 
@@ -29,6 +35,8 @@ function SignUpForm(){
             }
 
             console.log('sign up successful');
+            router.push(data.redirectUrl);
+            
         } catch (error){ 
             console.log('registration error', error); 
             alert('Try Again signup component'); 

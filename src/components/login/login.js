@@ -1,3 +1,6 @@
+"use client";
+
+import { signIn } from 'next-auth/react'
 import FormRow from "./login-form-row";
 
 function LoginForm(){
@@ -7,16 +10,21 @@ function LoginForm(){
 
         const formData = new FormData(event.target);
 
-        const loginDetails = {
+        // const loginDetails = {
+        //     username : formData.get('username'),
+        //     password : formData.get('password')
+        // };
+        signIn('credentials', {
             username : formData.get('username'),
-            password : formData.get('password')
-        };
+            password : formData.get('password'),
+            redirect: true
+        });
     
 
         console.log("Sending" , {username, password});
 
         try {
-            const response = await fetch('/api/user-login', {
+            const response = await fetch('/api/auth/user-login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json'},
                 body: JSON.stringify(loginDetails),

@@ -1,3 +1,5 @@
+"use client";
+
 export default function FormRow ({ label, id, name}) {
     return (
         <div className="flex items-center gap-4 mb-4">

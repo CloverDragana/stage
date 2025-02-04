@@ -1,5 +1,5 @@
-import Navbar from "@/components/navbar";
-import Topbar from "@/components/topbar";
+import Navbar from "@/components/navigation/navbar";
+import Topbar from "@/components/navigation/topbar";
 
 function Home() {
   return (

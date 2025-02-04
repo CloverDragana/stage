@@ -7,7 +7,7 @@ export async function POST(req) {
         const loginDetails = await req.json();
         const {username, password} = loginDetails;
 
-        if(!loginDetails.username || !loginDetails.password){
+        if(!username || !password){
             return new Response(JSON.stringify({error: 'Username and Password required to log in'}), {status: 400});
         }
 
@@ -25,10 +25,10 @@ export async function POST(req) {
             const user = dbQuery.rows[0];
             // const passwordCorrect = await bcrypt.compare(password, user.password);
 
-            if (loginDetails.password != dbQuery.password){
+            if (password !== user.password){
                 return new Response(JSON.stringify({error: 'Password incorrect'}), {status: 401});
             }
-            console.log(" api 5)");
+            
             return new Response(JSON.stringify({
                 message: 'Now logged in!',
                 userId: user.userId,

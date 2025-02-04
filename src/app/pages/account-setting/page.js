@@ -1,5 +1,7 @@
-import Navbar from "@/components/navbar";
-import Topbar from "@/components/topbar";
+"use client";
+
+import Navbar from "@/components/navigation/navbar";
+import Topbar from "@/components/navigation/topbar";
 import ProfilePicture from "@/components/profile/profile-picture";
 
 export default function AccountSetting() {

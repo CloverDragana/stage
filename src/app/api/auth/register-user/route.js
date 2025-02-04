@@ -1,5 +1,5 @@
 import postgresConnection from '@/lib/db';
-// import bcrypt from 'bcryptjs';
+// import { hash } from 'bcryptjs';
 
 export async function POST(req) {
     try {
@@ -10,7 +10,7 @@ export async function POST(req) {
         }
 
         const fullName = `${signUpInfo.fName} ${signUpInfo.lName}`;
-        // const hashedPwd = await bcrypt.hash(password, 10);
+        // const hashedPwd = await hash(password, 10);
 
         const pgClient = await postgresConnection.connect();
 
@@ -23,7 +23,8 @@ export async function POST(req) {
 
             return new Response(JSON.stringify({
                 message: 'User successfully registered',
-                userId: dbQuery.rows[0].UserID,
+                userId: dbQuery.rows[0].userid, //.userId
+                redirectUrl: "/profile"
             }), { status: 201 });
         } finally {
             pgClient.release();
