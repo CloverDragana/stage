@@ -9,49 +9,58 @@ export const authOptions = {
     },
     providers: [
         CredentialsProvider({
-            name : "Credentials",
+            name: "Credentials",
             credentials: {
-                username: { label :'Username', type: 'text', placeholder:'Username'},
-                password: { label :'Password', type: 'password'}
+                username: { label: 'Username', type: 'text', placeholder: 'Username'},
+                password: { label: 'Password', type: 'password'}
             },
-
-            async authorize(credentials){
+            async authorize(credentials) {
                 const dbClient = await postgresConnection.connect();
                 try {
                     const dbQuery = await dbClient.query(
                         `SELECT * FROM users WHERE username = $1`,
                         [credentials.username]
                     );
-
-                    if (dbQuery.rows.length === 0){
+                    
+                    if (dbQuery.rows.length === 0) {
                         throw new Error("User not found");
                     }
-
+                    
                     const user = dbQuery.rows[0];
-                    // const passwordCorrect = await compare(credentials.password, user.password);
-
-                    if(password !== user.password){
+                    
+                    if (credentials.password !== user.password) {
                         throw new Error("Invalid password");
                     }
+                    
                     return {
-                        id : user.userid, //.userId
-                        username : user.username,
-                        // creativeSlogan: user.creativeslogan || null,
+                        id: user.userid,
+                        username: user.username,
+                        email: user.email
                     }
-                } finally{
+                } finally {
                     dbClient.release();
                 }
             }
         })
     ],
+    pages: {
+        signIn: '/login',
+    },
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
-        async session({ session, token}) {
+        async jwt({ token, user }) {
+            if (user) {
+                token.username = user.username;
+                token.email = user.email;
+            }
+            return token;
+        },
+        async session({ session, token }) {
             console.log("Session callback - Token:", token);
             session.user = {
                 id: token.sub,
                 username: token.username,
-                //creativeSlogan: token.creativeSlogan || null,
+                email: token.email
             };
             return session;
         }
@@ -59,4 +68,4 @@ export const authOptions = {
 };
 
 const handler = NextAuth(authOptions);
-export {handler as GET, handler as POST};
+export { handler as GET, handler as POST };
