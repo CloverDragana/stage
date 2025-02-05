@@ -12,28 +12,37 @@ export async function PUT(req){
         }
 
         const {
-            fName, lName, gender, email, dob, password, userid
+            fName, lName, gender, email, dob
         } = await req.json();
-        const userEmail = session.user.email;
 
-        const hashedPassword = password ? await hash(password, 10) : null;
+        const authenticatedUserId = session.user.id;
+        // const hashedPassword = password ? await hash(password, 10) : null;
 
         const query = `
             UPDATE users
-            SET fName = $1, lName = $2, gender = $3, email = $4, dob = $5, password = COALESCE($6, password)
-            WHERE userid = $7
+            SET fName = COALESCE(NULLIF($1, ''), fName),
+                lName = COALESCE(NULLIF($2, ''), lName),
+                gender = COALESCE(NULLIF($3, ''), gender),
+                email = COALESCE(NULLIF($4, ''), email),
+                dob = COALESCE(NULLIF($5, '')::date, dob)
+            WHERE userid = $6
             RETURNING *;
         `;
 
-        const values = [fName, lName, gender, email, dob, hashedPassword, userid];
+        const values = [fName, lName, gender, email, dob, authenticatedUserId];
         const dbQuery = await postgresConnection.query(query, values);
 
         if(dbQuery.rowCount === 0){
             return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
         }
+
+        const updatedUser = dbQuery.rows[0];
+        console.log("Updated user:", updatedUser);
+
+
         return new Response(JSON.stringify({ 
             message: 'Profile updated successfully!',
-            userId: dbQuery.rows[0] }),
+            user: updatedUser }),
             { status: 200 });
     } catch (error){
         console.error("Updating user info unsuccessful", error);

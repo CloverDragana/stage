@@ -29,6 +29,8 @@ export const authOptions = {
                     }
                     
                     const user = dbQuery.rows[0];
+                    console.log("Authorize function - User from DB:", user); // 🔍 Debug
+
                     
                     if (credentials.password !== user.password) {
                         throw new Error("Invalid password");
@@ -38,8 +40,8 @@ export const authOptions = {
                         id: user.userid,
                         username: user.username,
                         email: user.email,
-                        fname: user.fName,
-                        lname: user.lName,
+                        fname: user.fname,
+                        lname: user.lname,
                         gender: user.gender,
                         dob: user.dob,
                     }
@@ -56,14 +58,15 @@ export const authOptions = {
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
+                console.log("JWT Callback - Received user:", user); // 🔍 Debug
+
                 token.id = user.userid;
                 token.username = user.username;
                 token.email = user.email;
-                token.fname = user.fName;
-                token.lname = user.lName;
+                token.fname = user.fName || user.fname;
+                token.lname = user.lName || user.lname;
                 token.gender = user.gender;
                 token.dob = user.dob;
-                console.log("JWT callback - user data:", user);
             }
             console.log("JWT callback - final token:", token);
             return token;

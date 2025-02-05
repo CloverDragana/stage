@@ -1,6 +1,6 @@
 function CreatePost(){
     return(
-        <div className="bg-white shadow-sm w-auto mx-6 my-3 items-center rounded-md shadow-2xl" >
+        <div className="bg-white w-auto mx-6 my-3 items-center rounded-md shadow-xl" >
             <div className="flex flex-row gap-8 px-4">
                 <p className="text-xl">Username</p>
                 <p>date post</p>

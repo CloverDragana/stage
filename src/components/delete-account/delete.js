@@ -33,7 +33,7 @@ function DeleteAccount ({onClose}) {
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
             <div className=" bg-white w-1/3 p-6 rounded-lg shadow-lg flex flex-col gap-6 text-center">
-                <h1 className="text-xl font-bold">Are you sure you want to delete your account?</h1>
+                <h2 className="text-xl font-bold">Are you sure you want to delete your account?</h2>
                 <p>This action can't be reversed!</p>
                 <div className="flex justify-center gap-4">
                     <button type="button" onClick={handleDeleteUser} disabled={isDeleting} className="rounded-full p-2 w-16 text-red-600 border-2 border-red-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]">yes</button>

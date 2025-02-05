@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 import Navbar from "@/components/navigation/navbar";
@@ -11,30 +11,29 @@ import DeleteAccount from "@/components/delete-account/delete";
 
 export default function AccountSetting() {
 
-    const {data: session} = useSession();
+    const {data: session, update} = useSession();
     const router = useRouter();
     const [showDeletePopUp, setDeletePopUp] = useState(false);
 
     const [formData, updateFormData] = useState({
-        fName: "", 
-        lName: "", 
-        gender: "", 
-        email: "", 
-        dob: "", 
+        fName: session?.user?.fName || "", 
+        lName: session?.user?.lName || "", 
+        gender: session?.user?.gender || "", 
+        email: session?.user?.email || "", 
+        dob: session?.user?.dob || "", 
         // password: "",
     });
  
     useEffect(() => {
         console.log("Session user data:", session?.user);
         if (session?.user) {
-            updateFormData(prev => ({
-                ...prev,
+            updateFormData({
                 fName: session.user.fName || "",
                 lName: session.user.lName || "",
                 gender: session.user.gender || "",
                 email: session.user.email || "",
-                dob: session.user.dob || "",
-            }));
+                dob: session.user.dob ? new Date(session.user.dob).toLocaleDateString("en-GB") : "",
+            });
         }
     }, [session]);
 
@@ -42,25 +41,24 @@ export default function AccountSetting() {
 
     const handleInfoChange = (event) => {
         const {name, value } = event.target;
-        updateFormData(prev => ({
+        updateFormData((prev) => ({
             ...prev,
-            [name]: value
+            [name]: name === "dob"? value : value,
         }));
     };
 
     const handleUpdatedInfo = async (event) => {
         event.preventDefault();
+
+        const [day, month, year] = formDatadob.split("/");
+        const formatDob= `${year}-${month}-${day}`;
         try{
             const response = await fetch("api/auth/update-user", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json"},
                 body: JSON.stringify({
-                    fName: formData.fName,
-                    lName: formData.lName,
-                    gender: formData.gender,
-                    email: formData.email,
-                    dob: formData.dob
-                    // , password: formData.password
+                    ...formData,
+                    dob: formatDob,
                 }),
             });
 
@@ -69,6 +67,13 @@ export default function AccountSetting() {
             
             if(response.ok){
                 alert("Profile updated!");
+
+                await update();
+
+                await signIn("credentials", {
+                    callbackUrl: "/account-setting",
+                    redirect: false,
+                });
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -119,13 +124,13 @@ export default function AccountSetting() {
                     <div className="w-full px-3 py-6 justify-between">
                         <form className="flex flex-col justify-between gap-14" onSubmit={handleUpdatedInfo}>
                             <div>
-                                <input type="text" name="fName" placeholder="First Name" value={formData.fname} onChange={handleInfoChange} className="rounded-full p-2"></input>
-                                <input type="text" name="lName" placeholder="Last Name" value={formData.lname} onChange={handleInfoChange} className="rounded-full p-2"></input>
-                                <input type="text" name="gender" placeholder="Gender" onChange={handleInfoChange} className="rounded-full p-2"></input>
+                                <input type="text" name="fName" placeholder="First Name" value={formData.fname} onChange={handleInfoChange} className="rounded-full p-2 text-center"></input>
+                                <input type="text" name="lName" placeholder="Last Name" value={formData.lname} onChange={handleInfoChange} className="rounded-full p-2 text-center"></input>
+                                <input type="text" name="gender" placeholder="Gender" onChange={handleInfoChange} className="rounded-full p-2 text-center"></input>
                             </div>
                             <div>
-                                <input type="text" name="email" placeholder="Email Address" value={formData.email} onChange={handleInfoChange} className="rounded-full p-2"></input>
-                                <input type="text" name="dob" placeholder="Date of Birth" value={formData.dob} onChange={handleInfoChange} className="rounded-full p-2"></input>
+                                <input type="text" name="email" placeholder="Email Address" value={formData.email} onChange={handleInfoChange} className="rounded-full p-2 text-center"></input>
+                                <input type="text" name="dob" placeholder="Date of Birth" value={formData.dob} onChange={handleInfoChange} className="rounded-full p-2 text-center"></input>
                                 {/* <input type="password" name="password" placeholder="Change Password" value={formData.password} onChange={handleInfoChange} className="rounded-full p-2"></input> */}
                             </div>
                             <div className="flex justify-between items-center gap-4 py-4">
