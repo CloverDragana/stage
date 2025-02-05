@@ -8,6 +8,7 @@ import Navbar from "@/components/navigation/navbar";
 import Topbar from "@/components/navigation/topbar";
 import ProfileCard from "@/components/profile/profile-card";
 import ContentDisplay from "@/components/profile/display-content";
+import CreatePost from "@/components/posting/create-post";
 
 export default function Profile() {
 
@@ -17,6 +18,7 @@ export default function Profile() {
   console.log("Session data:", session); 
   console.log("Session status:", status);
 
+  // Change into a component to call in all pages
   useEffect( () => {
     if(status === "unauthenticated"){
       router.push("/login");
@@ -24,18 +26,18 @@ export default function Profile() {
   }, [status]);
 
   if(status === "loading"){
-    return <p className="text-center">Your Adventure Awaits...</p>;
+    return <p className="my-80 text-center text-7xl">Your Adventure Awaits...</p>;
   }
   
     return (
       <div className="min-h-screen">
         <Topbar />
-        <main className="">
-          <Navbar />
-          <div className="ml-[172px] mt-16">
+        <Navbar />
+        <div className="ml-[172px] mt-16">
             <ProfileCard />
             <ContentDisplay />
-            <div className=" shadow-[inset_0px_0px_38px_23px_rgba(0,_0,_0,_0.35)]">
+            <div className=" shadow-[inset_0px_0px_38px_23px_rgba(0,_0,_0,_0.35)] flex flex-col justify-center align-middle">
+              <CreatePost />
               <p className="text-black">hello</p>
               <p className="text-black">hello</p>
               <p className="text-black">hello</p>
@@ -49,8 +51,7 @@ export default function Profile() {
               <p className="text-black">hello</p>
 
             </div>
-          </div>
-        </main>
+        </div>
       </div>
     );
 }

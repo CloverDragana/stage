@@ -1,29 +1,26 @@
 "use client";
 
-import { signIn } from 'next-auth/react'
 import FormRow from "./login-form-row";
+import { signIn } from 'next-auth/react';
+import { useRouter } from "next/navigation";
 
 function LoginForm(){
+
+    const router = useRouter();
 
     const handleFormSubmission = async (event) => {
         event.preventDefault();
 
-        const formData = new FormData(event.target);
-
-        // const loginDetails = {
-        //     username : formData.get('username'),
-        //     password : formData.get('password')
-        // };
-        signIn('credentials', {
-            username : formData.get('username'),
-            password : formData.get('password'),
-            redirect: true
-        });
-    
-
-        console.log("Sending" , {username, password});
-
         try {
+            const formData = new FormData(event.target);
+
+            const loginDetails = {
+                username : formData.get('username'),
+                password : formData.get('password')
+            };
+        
+            console.log("Sending" , {username, password});
+
             const response = await fetch('/api/auth/user-login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json'},
@@ -34,12 +31,24 @@ function LoginForm(){
             console.log("Server Response: ", data);
 
             if (!response.ok){
-                alert(`Login failed: ${data.error}`);
-                return;
+                throw new Error(data.error || "Login failed");
             }
 
             alert("Login successful;")
-        } catch{
+
+            const result = await signIn('credentials', {
+                username: loginDetails.username,
+                password: loginDetails.password,
+                redirect: false
+            });
+
+            if(result?.error){
+                throw new Error(result.error);
+            }
+
+            router.push('/');
+
+        } catch (error){
             console.log("Login error :", error);
             alert("Login didn't work, please try again");
         }

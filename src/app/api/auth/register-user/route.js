@@ -9,16 +9,16 @@ export async function POST(req) {
             return new Response(JSON.stringify({ error: 'All fields are required register user file' }), { status: 400 });
         }
 
-        const fullName = `${signUpInfo.fName} ${signUpInfo.lName}`;
+        // const fullName = `${signUpInfo.fName} ${signUpInfo.lName}`;
         // const hashedPwd = await hash(password, 10);
 
         const pgClient = await postgresConnection.connect();
 
         try {
             const dbQuery = await pgClient.query(
-                `INSERT INTO users (fullname, email, username, password)
+                `INSERT INTO users (fname, lname, email, username, password)
                 VALUES ($1, $2, $3, $4) RETURNING userid`,
-                [fullName, signUpInfo.email, signUpInfo.username, signUpInfo.password]
+                [signUpInfo.fName, signUpInfo.lName, signUpInfo.email, signUpInfo.username, signUpInfo.password]
             );
 
             return new Response(JSON.stringify({
