@@ -1,7 +1,6 @@
 import postgresConnection from '@/lib/db';
-import { getServerSession} from "next-auth";
-import {authOptions} from "../[...nextauth]/route";
-import { hash } from 'bcryptjs';
+import { getServerSession } from "next-auth";
+import { authOptions } from "../[...nextauth]/route";
 
 export async function PUT(req){
     try{
@@ -11,17 +10,20 @@ export async function PUT(req){
             return new Response(JSON.stringify({ message: 'unauthorised access to page' }), { status: 401 });
         }
 
-        const body =  await req.json();
-        const { fName, lName, gender, email, dob} = body.formData;
-        console.log({fName, lName, gender, email, dob});
-
+        const body = await req.json();
+        const { fname, lname, gender, email, dob } = body;
+        
+        // Use sub from session since that's where we put the ID
         const authenticatedUserId = session.user.id;
-        // const hashedPassword = password ? await hash(password, 10) : null;
+
+        console.log("Session:", session);
+        console.log("AuthenticatedUserId:", authenticatedUserId);
+        console.log("Update data:", { fname, lname, gender, email, dob });
 
         const query = `
             UPDATE users
-            SET fName = COALESCE(NULLIF($1, ''), fName),
-                lName = COALESCE(NULLIF($2, ''), lName),
+            SET fname = COALESCE(NULLIF($1, ''), fname),
+                lname = COALESCE(NULLIF($2, ''), lname),
                 gender = COALESCE(NULLIF($3, ''), gender),
                 email = COALESCE(NULLIF($4, ''), email),
                 dob = COALESCE(NULLIF($5, '')::date, dob)
@@ -29,23 +31,28 @@ export async function PUT(req){
             RETURNING *;
         `;
 
-        const values = [fName, lName, gender, email, dob, authenticatedUserId];
-        const dbQuery = await postgresConnection.query(query, values);
+        const values = [fname, lname, gender, email, dob, authenticatedUserId];
+        const dbClient = await postgresConnection.connect();
+        
+        try {
+            const dbQuery = await dbClient.query(query, values);
+            
+            if(dbQuery.rowCount === 0){
+                return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
+            }
 
-        if(dbQuery.rowCount === 0){
-            return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
+            const updatedUser = dbQuery.rows[0];
+            
+            return new Response(JSON.stringify({ 
+                message: 'Profile updated successfully!',
+                user: updatedUser 
+            }), { status: 200 });
+            
+        } finally {
+            dbClient.release();
         }
-
-        const updatedUser = dbQuery.rows[0];
-        console.log("Updated user:", updatedUser);
-
-
-        return new Response(JSON.stringify({ 
-            message: 'Profile updated successfully!',
-            user: updatedUser }),
-            { status: 200 });
     } catch (error){
-        console.error("Updating user info unsuccessful", error);
-        return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
+        console.error("Update error:", error);
+        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
     }
 }

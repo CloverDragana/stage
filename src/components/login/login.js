@@ -10,50 +10,25 @@ function LoginForm(){
 
     const handleFormSubmission = async (event) => {
         event.preventDefault();
-
-        try {
-            const formData = new FormData(event.target);
-
-            const loginDetails = {
-                username : formData.get('username'),
-                password : formData.get('password')
-            };
+        const formData = new FormData(event.target);
         
-            console.log("Sending" , {username, password});
-
-            const response = await fetch('/api/auth/user-login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json'},
-                body: JSON.stringify(loginDetails),
-            });
-
-            const data = await response.json();
-            console.log("Server Response: ", data);
-
-            if (!response.ok){
-                throw new Error(data.error || "Login failed");
-            }
-
-            alert("Login successful;")
-
+        try {
             const result = await signIn('credentials', {
-                username: loginDetails.username,
-                password: loginDetails.password,
+                username: formData.get('username'),
+                password: formData.get('password'),
                 redirect: false
             });
-
-            if(result?.error){
+    
+            if(result?.error) {
                 throw new Error(result.error);
             }
-
+            
             router.push('/');
-
-        } catch (error){
-            console.log("Login error :", error);
-            alert("Login didn't work, please try again");
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("Login failed, please try again");
         }
     };
-
     return(
         <form onSubmit={handleFormSubmission} className="w-full">
             <FormRow label="Username" id="username" name="username" />
