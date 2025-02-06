@@ -16,20 +16,20 @@ export default function AccountSetting() {
     const [showDeletePopUp, setDeletePopUp] = useState(false);
 
     const [formData, updateFormData] = useState({
-        fName: session?.user?.fName || "", 
-        lName: session?.user?.lName || "", 
-        gender: session?.user?.gender || "", 
-        email: session?.user?.email || "", 
-        dob: session?.user?.dob || "", 
+        fName: "", 
+        lName: "", 
+        gender: "", 
+        email: "", 
+        dob: "", 
         // password: "",
     });
  
     useEffect(() => {
-        console.log("Session user data:", session?.user);
+        console.log("Session user data line 28:", session?.user);
         if (session?.user) {
             updateFormData({
-                fName: session.user.fName || "",
-                lName: session.user.lName || "",
+                fName: session.user.fname || "",
+                lName: session.user.lname || "",
                 gender: session.user.gender || "",
                 email: session.user.email || "",
                 dob: session.user.dob ? new Date(session.user.dob).toLocaleDateString("en-GB") : "",
@@ -37,7 +37,7 @@ export default function AccountSetting() {
         }
     }, [session]);
 
-    console.log("Session data :", session);
+    console.log("Session data line 40:", session);
 
     const handleInfoChange = (event) => {
         const {name, value } = event.target;
@@ -50,7 +50,7 @@ export default function AccountSetting() {
     const handleUpdatedInfo = async (event) => {
         event.preventDefault();
 
-        const [day, month, year] = formDatadob.split("/");
+        const [day, month, year] = formData.dob.split("/");
         const formatDob= `${year}-${month}-${day}`;
         try{
             const response = await fetch("api/auth/update-user", {
@@ -67,8 +67,14 @@ export default function AccountSetting() {
             
             if(response.ok){
                 alert("Profile updated!");
-
+                console.log("data before line 71:",data );
                 await update();
+
+                console.log("data after line 71:",data );
+                await fetch('/api/auth/update-user');
+                window.location.reload();
+                
+                console.log("data after fetch and reload line 77:",data );
 
                 await signIn("credentials", {
                     callbackUrl: "/account-setting",
@@ -124,8 +130,8 @@ export default function AccountSetting() {
                     <div className="w-full px-3 py-6 justify-between">
                         <form className="flex flex-col justify-between gap-14" onSubmit={handleUpdatedInfo}>
                             <div>
-                                <input type="text" name="fName" placeholder="First Name" value={formData.fname} onChange={handleInfoChange} className="rounded-full p-2 text-center"></input>
-                                <input type="text" name="lName" placeholder="Last Name" value={formData.lname} onChange={handleInfoChange} className="rounded-full p-2 text-center"></input>
+                                <input type="text" name="fName" placeholder="First Name" value={formData.fName} onChange={handleInfoChange} className="rounded-full p-2 text-center"></input>
+                                <input type="text" name="lName" placeholder="Last Name" value={formData.lName} onChange={handleInfoChange} className="rounded-full p-2 text-center"></input>
                                 <input type="text" name="gender" placeholder="Gender" onChange={handleInfoChange} className="rounded-full p-2 text-center"></input>
                             </div>
                             <div>

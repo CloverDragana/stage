@@ -11,9 +11,9 @@ export async function PUT(req){
             return new Response(JSON.stringify({ message: 'unauthorised access to page' }), { status: 401 });
         }
 
-        const {
-            fName, lName, gender, email, dob
-        } = await req.json();
+        const body =  await req.json();
+        const { fName, lName, gender, email, dob} = body.formData;
+        console.log({fName, lName, gender, email, dob});
 
         const authenticatedUserId = session.user.id;
         // const hashedPassword = password ? await hash(password, 10) : null;

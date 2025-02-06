@@ -29,7 +29,7 @@ export const authOptions = {
                     }
                     
                     const user = dbQuery.rows[0];
-                    console.log("Authorize function - User from DB:", user); // 🔍 Debug
+                    console.log("Authorize function - User from DB:", user); 
 
                     
                     if (credentials.password !== user.password) {
