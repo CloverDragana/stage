@@ -2,9 +2,16 @@
 
 import LoginForm from '@/components/login/login';
 import SignUpForm from '@/components/login/signup';
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
 import {useState, useRef, useEffect} from 'react';
 
 export default function Login() {
+
+    // const session = await getServerSession();
+    // if(session){
+    //     redirect("/");
+    // }
 
     const [view, setView] = useState(null);
     const formRef = useRef(null);

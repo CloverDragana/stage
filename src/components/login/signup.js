@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import FormRow from "@/components/login/login-form-row";
 import { signIn } from "next-auth/react";
@@ -42,14 +42,20 @@ function SignUpForm(){
                 redirect: false
             });
 
+            // if(!result?.error) {
+            //     router.push('/profile');
+            //     router.refresh();
+            // }
             if (result?.error) {
                 throw new Error(result.error);
             }
 
             // Redirect to profile page
             router.push('/profile');
+            router.refresh();
             
         } catch (error){ 
+            // throw new Error(result.error);
             console.log('registration error', error); 
             
             if (error.message.includes('email already registered')) {

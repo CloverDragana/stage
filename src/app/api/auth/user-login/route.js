@@ -1,5 +1,6 @@
 import postgresConnection from '@/lib/db';
-// import bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
+import { compare } from 'bcryptjs';
 
 export async function POST(req) {
     try {
@@ -23,11 +24,15 @@ export async function POST(req) {
             }
             
             const user = dbQuery.rows[0];
-            // const passwordCorrect = await bcrypt.compare(password, user.password);
+            const passwordCorrect = await compare(password, user.password);
 
-            if (password !== user.password){
+            if (!passwordCorrect){
                 return new Response(JSON.stringify({error: 'Password incorrect'}), {status: 401});
             }
+
+            // if (password !== user.password){
+            //     return new Response(JSON.stringify({error: 'Password incorrect'}), {status: 401});
+            // }
             
             return new Response(JSON.stringify({
                 message: 'Now logged in!',

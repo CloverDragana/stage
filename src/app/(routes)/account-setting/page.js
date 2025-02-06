@@ -49,7 +49,7 @@ export default function AccountSetting() {
 
         try {
             console.log(formData);
-            const response = await fetch("/api/auth/update-user", {
+            const response = await fetch("api/auth/update-user", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
@@ -58,9 +58,8 @@ export default function AccountSetting() {
             const data = await response.json();
             if(response.ok) {
                 await update();
-                window.location.reload();
             } else {
-                alert(`Error: ${data.message}`);
+                alert(`Error: ${formData.message}`);
             }
         } catch (error) {
             console.error("Update unsuccessful", error);
@@ -78,6 +77,7 @@ export default function AccountSetting() {
            if(response.ok) {
                alert("Account Deleted!");
                router.push('/login');
+               router.refresh(); // clear cache
            } else {
                alert("Account deletion failed");
            }
@@ -106,7 +106,7 @@ export default function AccountSetting() {
                            </div>
                            <div>
                                <input type="text" name="email" placeholder="Email Address" value={formData.email} onChange={handleInfoChange} className="rounded-full p-2 text-center" />
-                               <input type="text" name="dob" placeholder="Date of Birth" value={formData.dob} onChange={handleInfoChange} className="rounded-full p-2 text-center" />
+                               <input type="text" name="dob" placeholder="Date of Birth DD/MM/YYYY" value={formData.dob} onChange={handleInfoChange} className="rounded-full p-2 text-center" />
                            </div>
                            <div className="flex justify-between items-center gap-4 py-4">
                                <button type="button" onClick={() => setDeletePopUp(true)} className="rounded-full bg-white p-2 text-red-600 border-2 border-red-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]">Delete Account</button>

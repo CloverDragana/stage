@@ -1,5 +1,5 @@
 import postgresConnection from '@/lib/db';
-// import { hash } from 'bcryptjs';
+import { hash } from 'bcryptjs';
 
 export async function POST(req) {
     try {
@@ -8,9 +8,10 @@ export async function POST(req) {
         if (!signUpInfo.fName || !signUpInfo.lName || !signUpInfo.email || !signUpInfo.username || !signUpInfo.password) {
             return new Response(JSON.stringify({ error: 'All fields are required register user file' }), { status: 400 });
         }
+        console.log({signUpInfo});
 
         // const fullName = `${signUpInfo.fName} ${signUpInfo.lName}`;
-        // const hashedPwd = await hash(password, 10);
+        const hashedPwd = await hash(signUpInfo.password, 10);
 
         const pgClient = await postgresConnection.connect();
 
@@ -18,7 +19,7 @@ export async function POST(req) {
             const dbQuery = await pgClient.query(
                 `INSERT INTO users (fname, lname, email, username, password)
                 VALUES ($1, $2, $3, $4, $5) RETURNING userid`,
-                [signUpInfo.fName, signUpInfo.lName, signUpInfo.email, signUpInfo.username, signUpInfo.password]
+                [signUpInfo.fName, signUpInfo.lName, signUpInfo.email, signUpInfo.username, hashedPwd]
             );
 
             return new Response(JSON.stringify({
