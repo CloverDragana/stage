@@ -19,11 +19,11 @@ function LoginForm(){
                 redirect: false
             });
     
-            if(result?.error) {
-                throw new Error(result.error);
+            if(!result?.error) {
+                router.push('/');
+                router.refresh();
             }
             
-            router.push('/');
         } catch (error) {
             console.error("Login error:", error);
             alert("Login failed, please try again");
