@@ -17,7 +17,7 @@ export async function POST(req) {
         try {
             const dbQuery = await pgClient.query(
                 `INSERT INTO users (fname, lname, email, username, password)
-                VALUES ($1, $2, $3, $4) RETURNING userid`,
+                VALUES ($1, $2, $3, $4, $5) RETURNING userid`,
                 [signUpInfo.fName, signUpInfo.lName, signUpInfo.email, signUpInfo.username, signUpInfo.password]
             );
 
