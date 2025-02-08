@@ -13,7 +13,7 @@ function Topbar() {
                 <Search />
                 </div>
                 <div className="w-auto rounded-full mr-4">
-                    <img src="/create-post.png" alt="create-post" className="w-20 h-20 shadow-[0px_0px_40px_-17px_rgba(0,_0,_0,_1)] rounded-full "/>
+                    <img src="/create-post.png" alt="create-post" className="w-[70px] h-[70px] shadow-[0px_0px_40px_-17px_rgba(0,_0,_0,_1)] rounded-full "/>
                 </div>
             </header>
         </div>

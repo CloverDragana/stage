@@ -22,7 +22,7 @@ function Navbar(){
 
     return(
         <>
-        <nav className="fixed top-[88px] left-0 h-screen w-42 m-0 flex flex-col bg-primary text-black text-xl shadow-lg">
+        <nav className="fixed top-[78px] left-0 h-screen w-42 m-0 flex flex-col bg-primary text-black text-xl shadow-lg">
                 <div className="py-3 px-1">
                     <AccountToggle toggleSize="navbar"/>
                 </div>

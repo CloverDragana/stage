@@ -33,7 +33,7 @@ export default function Profile() {
       <div className="min-h-screen">
         <Topbar />
         <Navbar />
-        <div className="ml-[194px] mt-16">
+        <div className="ml-[194px] mt-[78px]">
             <ProfileCard />
             <ContentDisplay />
             <div className=" shadow-[inset_0px_0px_38px_23px_rgba(0,_0,_0,_0.35)] flex flex-col justify-center align-middle">
