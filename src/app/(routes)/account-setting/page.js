@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession, signIn } from "next-auth/react";
+import { useSession, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 import Navbar from "@/components/navigation/navbar";
@@ -10,57 +10,84 @@ import ProfilePicture from "@/components/profile/profile-picture";
 import DeleteAccount from "@/components/delete-account/delete";
 
 export default function AccountSetting() {
-   const {data: session, update} = useSession();
-   const router = useRouter();
-   const [showDeletePopUp, setDeletePopUp] = useState(false);
+    const {data: session, update} = useSession();
+    const router = useRouter();
+    const [showDeletePopUp, setDeletePopUp] = useState(false);
 
-   const [formData, updateFormData] = useState({
-       fname: "", 
-       lname: "", 
-       gender: "", 
-       email: "", 
-       dob: "",
-   });
+    const [formData, updateFormData] = useState({
+        fname: "", 
+        lname: "", 
+        gender: "", 
+        email: "", 
+        dob: "",
+    });
 
-   useEffect(() => {
-       if (session?.user) {
-           updateFormData({
-               fname: session.user.fname || "",
-               lname: session.user.lname || "",
-               gender: session.user.gender || "",
-               email: session.user.email || "",
-               dob: session.user.dob ? new Date(session.user.dob).toLocaleDateString("en-GB") : "",
-           });
-       }
+    useEffect(() => {
+
+        if (!session || !session?.user) return
+       
+        updateFormData(prev => {
+            if (
+               prev.fname === session.user.fname &&
+               prev.lname === session.user.lname &&
+               prev.gender === session.user.gender &&
+               prev.email === session.user.email &&
+               prev.dob === (session.user.dob ? new Date(session.user.dob).toLocaleDateString("en-GB") : "")
+            ){
+                return prev;
+            }
+            return {
+                fname: session.user.fname || "",
+                lname: session.user.lname || "",
+                gender: session.user.gender || "",
+                email: session.user.email || "",
+                dob: session.user.dob ? new Date(session.user.dob).toLocaleDateString("en-GB") : "",
+            };
+        });
    }, [session]);
 
-   const handleInfoChange = (event) => {
-       const {name, value} = event.target;
-       updateFormData(prev => ({
-           ...prev,
-           [name]: name === "dob" ? value : value,
-       }));
-   };
+    const handleInfoChange = (event) => {
+        const {name, value} = event.target;
+        updateFormData(prev => ({
+            ...prev,
+            [name]: name === "dob" ? value : value,
+        }));
+    };
 
     const handleUpdatedInfo = async (event) => {
         event.preventDefault();
-        const [day, month, year] = formData.dob.split("/");
-        const formatDob = `${year}-${month}-${day}`;
+
+        let formatDob = null;
+        if(formData.dob) {
+            const [day, month, year] = formData.dob.split("/");
+            if (day && month && year){
+                formatDob = `${year}-${month}-${day}`;
+            }
+        }
 
         try {
-            console.log(formData);
-            const response = await fetch("api/auth/update-user", {
+            console.log("updating profile with:", formData);
+
+            const response = await fetch("/api/auth/update-user", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({ ...formData, dob: formatDob, userId: session.user.userId}),
             });
 
-            const data = await response.json();
-            if(response.ok) {
-                await update();
-            } else {
-                alert(`Error: ${formData.message}`);
+            if(!response.ok) {
+                throw new Error("Update failed");
             }
+
+            const data = await response.json();
+            console.log("Update successful", data);
+
+            // console.log("session before update:", update);
+
+            await update({ ...session, user: data.user });
+            await getSession();
+
+            console.log("session after update:", session);
+    
         } catch (error) {
             console.error("Update unsuccessful", error);
             alert("Update unsuccessful");
@@ -70,7 +97,7 @@ export default function AccountSetting() {
    const handleDeleteAccount = async (event) => {
        event.preventDefault();
        try {
-           const response = await fetch("api/auth/delete-user", {
+           const response = await fetch("/api/auth/delete-user", {
                method: "DELETE"
            });
            

@@ -1,5 +1,6 @@
 "use client";
 
+import AccountToggle from "../navigation/account-toggle";
 import FormRow from "@/components/login/login-form-row";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -72,6 +73,10 @@ function SignUpForm(){
 
     return(
         <form onSubmit={handleSignUpForm} className="w-full">
+            <h2 className="text-white text-xl w-full text-center pb-2">Would you like to set up a professional or a personal profile?</h2>
+            <div className="flex justify-center mb-4">
+                <AccountToggle onToggle={(type) => {console.log('Profile type selected:', type); setProfileType(type);}}/>
+            </div>
             <FormRow label="First Name" id="fName" name="fName" type="text" />
             <FormRow label="Last Name" id="lName" name="lName" type="text" />
             <FormRow label="Email Address" id="email" name="email" type="email" />
