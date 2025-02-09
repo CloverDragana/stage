@@ -36,7 +36,7 @@ export default function Login() {
             <div className=" flex mt-20 justify-center items-center">
                 <h1 className="text-white text-8xl font-bold">S.T.A.G.E.</h1>
             </div>
-            <div className="flex justify-center mt-16">
+            <div className="flex justify-center mt-10">
                 <div ref = {formRef} className="relative">
                     
                     <div className="flex gap-8">

@@ -42,11 +42,7 @@ function SignUpForm(){
                 password: userInfo.password,
                 redirect: false
             });
-
-            // if(!result?.error) {
-            //     router.push('/profile');
-            //     router.refresh();
-            // }
+            
             if (result?.error) {
                 throw new Error(result.error);
             }
