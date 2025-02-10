@@ -1,3 +1,4 @@
+// File: app/api/auth/[...nextauth]/route.js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import postgresConnection from "@/lib/db";
@@ -19,16 +20,13 @@ export const authOptions = {
                 const dbClient = await postgresConnection.connect();
                 try {
                     const dbQuery = await dbClient.query(
-                        `SELECT userid, fname, lname, username, email, gender, dob, password, personal_account, professional_account 
+                        `SELECT userid, fname, lname, username, email, gender, dob, password, personal_account, professional_account, profile_type 
                         FROM users 
                         WHERE username = $1`,
                         [credentials?.username]
                     );
-
-                    console.log("Database query result:", dbQuery.rows);
                     
                     if (dbQuery.rows.length === 0) {
-                        console.error("User not found:", credentials?.username);
                         throw new Error("User not found");
                     }
                     
@@ -39,14 +37,7 @@ export const authOptions = {
                         throw new Error("Invalid password");
                     }
 
-                    let profileType = 'personal';
-                    if (user.personal_account && !user.professional_account) {
-                        profileType = 'personal';
-                    } else if (!user.personal_account && user.professional_account) {
-                        profileType = 'professional';
-                    } else if (user.personal_account && user.professional_account) {
-                        profileType = 'personal';
-                    }
+                    let profileType = user.profile_type || 'personal';
                     
                     const returnUser = {
                         userid: user.userid,
@@ -73,8 +64,7 @@ export const authOptions = {
     },
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
-        async jwt({ token, user, trigger }) {
-
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.id = user.userid;
                 token.userId = user.userid;
@@ -89,20 +79,16 @@ export const authOptions = {
                 token.profileType = user.profileType;
             }
 
-            // if (trigger == "update") {
-            //     if (session?.user?.isDeactivated) {
-            //         token.isDeactivated = session.user.isDeactivated
-            //     }
-            // }
+            if (trigger === "update" && session?.profileType) {
+                token.profileType = session.profileType; // Updates the JWT token
+            }
 
-            // Only fetch fresh data if we have an ID
             if (token.id || token.userId) {
                 const userId = token.id || token.userId;
                 const dbClient = await postgresConnection.connect();
                 try {
-                    console.log("JWT Callback - Fetching fresh data for user:", userId);
                     const result = await dbClient.query(
-                        `SELECT userid, fname, lname, username, email, gender, dob 
+                        `SELECT userid, fname, lname, username, email, gender, dob, profile_type 
                          FROM users WHERE userid = $1`,
                         [userId]
                     );
@@ -118,7 +104,8 @@ export const authOptions = {
                             fname: freshUser.fname,
                             lname: freshUser.lname,
                             gender: freshUser.gender,
-                            dob: freshUser.dob
+                            dob: freshUser.dob,
+                            profileType: freshUser.profile_type || token.profileType
                         };
                     }
                 } finally {
@@ -127,8 +114,8 @@ export const authOptions = {
             }
             return token;
         },
+        
         async session({ session, token }) {
-            
             if (!session.user) session.user = {};
             
             session.user = {
@@ -146,7 +133,6 @@ export const authOptions = {
                 professional_account: token.professional_account,
             };
 
-            // console.log("Session Callback - Final session:", session);
             return session;
         }
     }

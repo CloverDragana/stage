@@ -1,5 +1,6 @@
 import Navbar from "@/components/navigation/navbar";
 import Topbar from "@/components/navigation/topbar";
+
 function Home() {
   return (
     <>
@@ -12,3 +13,9 @@ function Home() {
 }
 
 export default Home;
+
+
+// REMOVED PAGES
+// SETTINGS PAGES
+// SETTINGS COMPONENTS
+// POPUP TOGGLE SHIT
