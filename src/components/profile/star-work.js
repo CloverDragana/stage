@@ -1,3 +1,5 @@
+"use client";
+
 function StarWork(){
     return(
         <ul className="flex flex-row justify-evenly p-4">

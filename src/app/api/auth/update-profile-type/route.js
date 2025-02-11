@@ -1,4 +1,3 @@
-// File: app/api/auth/update-profile-type/route.js
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../[...nextauth]/route";
 import postgresConnection from "@/lib/db";
@@ -26,7 +25,10 @@ export async function POST(req) {
                 [profileType, session.user.id]
             );
 
-            return new Response(JSON.stringify({ profileType }), { status: 200 });
+            return new Response(JSON.stringify({ 
+                message: 'Profile type updated successfully',
+                profileType 
+            }), { status: 200 });
         } finally {
             dbClient.release();
         }

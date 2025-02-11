@@ -1,4 +1,3 @@
-// File: app/api/auth/[...nextauth]/route.js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import postgresConnection from "@/lib/db";
@@ -20,13 +19,17 @@ export const authOptions = {
                 const dbClient = await postgresConnection.connect();
                 try {
                     const dbQuery = await dbClient.query(
-                        `SELECT userid, fname, lname, username, email, gender, dob, password, personal_account, professional_account, profile_type 
+                        `SELECT userid, fname, lname, username, email, gender, dob, password, 
+                         personal_account, professional_account, profile_type 
                         FROM users 
                         WHERE username = $1`,
                         [credentials?.username]
                     );
+
+                    console.log("Database query result:", dbQuery.rows);
                     
                     if (dbQuery.rows.length === 0) {
+                        console.error("User not found:", credentials?.username);
                         throw new Error("User not found");
                     }
                     
@@ -37,8 +40,7 @@ export const authOptions = {
                         throw new Error("Invalid password");
                     }
 
-                    let profileType = user.profile_type || 'personal';
-                    
+                    // Use the profile_type from database instead of deriving it
                     const returnUser = {
                         userid: user.userid,
                         username: user.username,
@@ -49,7 +51,7 @@ export const authOptions = {
                         dob: user.dob,
                         personal_account: user.personal_account,
                         professional_account: user.professional_account,
-                        profileType: profileType
+                        profileType: user.profile_type // Use the stored profile_type
                     };
 
                     return returnUser;
@@ -59,10 +61,6 @@ export const authOptions = {
             }
         })
     ],
-    pages: {
-        signIn: '/login',
-    },
-    secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
         async jwt({ token, user, trigger, session }) {
             if (user) {
@@ -76,13 +74,14 @@ export const authOptions = {
                 token.dob = user.dob;
                 token.personal_account = user.personal_account;
                 token.professional_account = user.professional_account;
-                token.profileType = user.profileType;
+                token.profileType = user.profileType; // Make sure to include this
             }
 
             if (trigger === "update" && session?.profileType) {
-                token.profileType = session.profileType; // Updates the JWT token
+                token.profileType = session.profileType;
             }
 
+            // When refreshing from database
             if (token.id || token.userId) {
                 const userId = token.id || token.userId;
                 const dbClient = await postgresConnection.connect();
@@ -105,7 +104,7 @@ export const authOptions = {
                             lname: freshUser.lname,
                             gender: freshUser.gender,
                             dob: freshUser.dob,
-                            profileType: freshUser.profile_type || token.profileType
+                            profileType: freshUser.profile_type // Make sure this is included
                         };
                     }
                 } finally {
@@ -128,7 +127,7 @@ export const authOptions = {
                 lname: token.lname,
                 gender: token.gender,
                 dob: token.dob,
-                profileType: token.profileType,
+                profileType: token.profileType, // Make sure this is included
                 personal_account: token.personal_account,
                 professional_account: token.professional_account,
             };

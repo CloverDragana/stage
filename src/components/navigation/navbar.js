@@ -8,7 +8,7 @@ function Navbar(){
 
     const [logoutPopUp, setLogoutPopUp] = useState(false);
     const navItems = [
-        { title: "Profile", href: "/"},
+        { title: "Profile", href: "/profile"},
         { title: "Explore", href: ""},
         { title: "Notifications", href: ""},
         { title: "Messages", href: ""},

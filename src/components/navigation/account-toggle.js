@@ -1,29 +1,43 @@
-// File: components/navigation/account-toggle.js
+"use client";
+
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 
-const AccountToggle = ({ userId, onToggle, toggleSize = 'default' }) => {
+const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType }) => {
     const { data: session, update } = useSession();
-    const [profileSelection, setProfileSelection] = useState('personal');
+    const [profileSelection, setProfileSelection] = useState(initialProfileType || 'personal');
     const [isUpdating, setIsUpdating] = useState(false);
 
-    const handleToggle = async (profileType) => {
+    useEffect(() => {
+        if (session?.user?.profileType) {
+            console.log("Setting profile from session:", session.user.profileType);
+            setProfileSelection(session.user.profileType);
+        }
+    }, [session]);
+
+    const handleToggle = async (type) => {
         if (isUpdating) return;
         setIsUpdating(true);
-    
+        console.log('Toggle clicked:', type);
+
         try {
             const response = await fetch('/api/auth/update-profile-type', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ profileType })
+                body: JSON.stringify({ profileType: type })
             });
-    
+
             if (response.ok) {
-                const result = await response.json();
-                console.log("Database Update Response:", result);
+                await update({ profileType: type });
+                setProfileSelection(type);
                 
-                await update({ profileType });
-                setProfileSelection(profileType);
+                if (onToggle) {
+                    onToggle(type);
+                }
+                
+                console.log("Profile type updated successfully:", type);
+            } else {
+                console.error("Failed to update profile type");
             }
         } catch (error) {
             console.error('Failed to update profile type:', error);
@@ -31,16 +45,6 @@ const AccountToggle = ({ userId, onToggle, toggleSize = 'default' }) => {
             setIsUpdating(false);
         }
     };
-    
-    useEffect(() => {
-        if (session?.user?.profileType) {
-            setProfileSelection(session.user.profileType);
-        }
-        console.log("SESSION STATE UPDATED:", {
-            profileType: session?.user?.profileType,
-            timestamp: new Date().toISOString()
-        });
-    }, [session]);
 
     const toggleSizes = {
         default: {
@@ -75,7 +79,8 @@ const AccountToggle = ({ userId, onToggle, toggleSize = 'default' }) => {
         <>
             <div className={`rounded-full inline-flex ${currentSize.container}`}>
                 <button 
-                    onClick={() => handleToggle('personal')} 
+                    type="button"
+                    onClick={() => handleToggle('personal')}
                     disabled={isUpdating}
                     className={`rounded-full transition-all border-2 border-transparent whitespace-nowrap 
                         ${profileSelection === 'personal' ? currentSize.personal.selected : currentSize.personal.unselected} 
@@ -85,7 +90,8 @@ const AccountToggle = ({ userId, onToggle, toggleSize = 'default' }) => {
                     Personal
                 </button>
                 <button 
-                    onClick={() => handleToggle('professional')} 
+                    type="button"
+                    onClick={() => handleToggle('professional')}
                     disabled={isUpdating}
                     className={`rounded-full transition-all border-2 border-transparent whitespace-nowrap 
                         ${profileSelection === 'professional' ? currentSize.professional.selected : currentSize.professional.unselected} 
@@ -95,13 +101,12 @@ const AccountToggle = ({ userId, onToggle, toggleSize = 'default' }) => {
                     Professional
                 </button>
             </div>
-            
-            {/* Debug display - Remove this in production */}
-            <div className="text-xs mt-1 text-gray-600">
-                Current session mode: {session?.user?.profileType || 'loading...'}
+            {/* Debug display - Remove in production */}
+            <div className="text-xs mt-1">
+                Current session type: {session?.user?.profileType || 'loading...'}
             </div>
         </>
     );
-}
+};
 
 export default AccountToggle;

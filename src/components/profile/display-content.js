@@ -1,3 +1,5 @@
+"use client";
+
 import StarWork from "@/components/profile/star-work";
 
 function ContentDisplay() {
