@@ -13,7 +13,7 @@ export async function PUT(req, res){
         }
 
         const body = await req.json();
-        const { userId, fname, lname, email, gender, dob } = body;
+        const { userId, fname, lname, username, email, gender, dob } = body;
 
         const pgClient = await postgresConnection.connect();
 
@@ -22,14 +22,15 @@ export async function PUT(req, res){
             UPDATE users
             SET fname = $1,
                 lname = $2,
-                email = $3,
-                gender = $4,
-                dob = $5
-            WHERE userid = $6
+                username =$3,
+                email = $4,
+                gender = $5,
+                dob = $6
+            WHERE userid = $7
             RETURNING *;
             `;
 
-            const values = [fname, lname, email, gender, dob, userId];
+            const values = [fname, lname, username, email, gender, dob, userId];
 
             const dbResponse = await pgClient.query(updateUser, values);
 
@@ -41,6 +42,7 @@ export async function PUT(req, res){
                 ...session.user,
                 fname,
                 lname,
+                username,
                 email,
                 gender,
                 dob

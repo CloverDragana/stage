@@ -3,10 +3,13 @@
 import { useState } from "react";
 import LogoutPopUp from "@/components/navigation/logout"
 import AccountToggle from "@/components/navigation/account-toggle";
+import CreateSecondProfile from "@/components/popup-actions/profile-type-popup";
 
 function Navbar(){
 
     const [logoutPopUp, setLogoutPopUp] = useState(false);
+    const [secondProfile, setSecondProfile] = useState(false);
+
     const navItems = [
         { title: "Profile", href: "/profile"},
         { title: "Explore", href: ""},
@@ -46,6 +49,7 @@ function Navbar(){
                 </ul>
             </nav>
             {logoutPopUp && <LogoutPopUp onClose={ () => setLogoutPopUp(false)} />}
+            {secondProfile && <CreateSecondProfile onClose= {() => setSecondProfile(false)} />}
         </>
     );
 }
