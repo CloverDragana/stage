@@ -6,6 +6,7 @@ import { compare } from 'bcryptjs';
 export const authOptions = {
     session: {
         strategy: 'jwt',
+        jwt: true,
     },
     providers: [
         CredentialsProvider({
@@ -18,7 +19,8 @@ export const authOptions = {
                 const dbClient = await postgresConnection.connect();
                 try {
                     const dbQuery = await dbClient.query(
-                        `SELECT userid, fname, lname, username, email, gender, dob, password 
+                        `SELECT userid, fname, lname, username, email, gender, dob, password, 
+                         personal_account, professional_account, profile_type 
                         FROM users 
                         WHERE username = $1`,
                         [credentials?.username]
@@ -37,7 +39,8 @@ export const authOptions = {
                     if (!correctPassword) {
                         throw new Error("Invalid password");
                     }
-                    
+
+                    // Use the profile_type from database instead of deriving it
                     const returnUser = {
                         userid: user.userid,
                         username: user.username,
@@ -46,42 +49,58 @@ export const authOptions = {
                         lname: user.lname,
                         gender: user.gender,
                         dob: user.dob,
+                        personal_account: user.personal_account,
+                        professional_account: user.professional_account,
+                        profileType: user.profile_type // Use the stored profile_type
                     };
-                    
-                    console.log("Returning:", returnUser);
+
                     return returnUser;
-                    
                 } finally {
                     dbClient.release();
                 }
             }
         })
     ],
-    pages: {
-        signIn: '/login',
-    },
-    secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
-        async jwt({ token, user, trigger }) {
-            console.log("JWT Callback - Trigger:", trigger);
-            console.log("JWT Callback - Incoming token:", token);
-            console.log("JWT Callback - Incoming user:", user);
-
-            // Always maintain the ID from initial sign in
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.id = user.userid;
-                token.userId = user.userid; // Add redundant ID field just in case
+                token.userId = user.userid;
+                token.username = user.username;
+                token.email = user.email;
+                token.fname = user.fname;
+                token.lname = user.lname;
+                token.gender = user.gender;
+                token.dob = user.dob;
+                token.personal_account = user.personal_account;
+                token.professional_account = user.professional_account;
+                token.profileType = user.profileType;
             }
 
-            // Only fetch fresh data if we have an ID
+            // if (trigger === "update" && session?.profileType) {
+            //     token.profileType = session.profileType;
+            // }
+            if (trigger === "update") {
+                // Update profile type if provided
+                if (session?.profileType) {
+                    token.profileType = session.profileType;
+                }
+                // Update account flags if provided
+                if (session?.personal_account !== undefined) {
+                    token.personal_account = session.personal_account;
+                }
+                if (session?.professional_account !== undefined) {
+                    token.professional_account = session.professional_account;
+                }
+            }
+
             if (token.id || token.userId) {
                 const userId = token.id || token.userId;
                 const dbClient = await postgresConnection.connect();
                 try {
-                    console.log("JWT Callback - Fetching fresh data for user:", userId);
                     const result = await dbClient.query(
-                        `SELECT userid, fname, lname, username, email, gender, dob 
-                         FROM users WHERE userid = $1`,
+                        `SELECT userid, fname, lname, username, email, gender, dob, profile_type, personal_account, professional_account 
+                        FROM users WHERE userid = $1`,
                         [userId]
                     );
                     
@@ -96,36 +115,37 @@ export const authOptions = {
                             fname: freshUser.fname,
                             lname: freshUser.lname,
                             gender: freshUser.gender,
-                            dob: freshUser.dob
+                            dob: freshUser.dob,
+                            profileType: freshUser.profile_type, // Make sure this is included
+                            personal_account: freshUser.personal_account,
+                            professional_account: freshUser.professional_account
                         };
                     }
                 } finally {
                     dbClient.release();
                 }
             }
-            
-            console.log("JWT Callback - Final token:", token);
             return token;
         },
+        
         async session({ session, token }) {
-            console.log("Session Callback - Incoming token:", token);
-            
             if (!session.user) session.user = {};
             
-            // Ensure we're copying all relevant fields
             session.user = {
                 ...session.user,
                 id: token.id || token.userId || token.sub,
-                userId: token.id || token.userId || token.sub, // Add redundant ID field
+                userId: token.id || token.userId || token.sub,
                 username: token.username,
                 email: token.email,
                 fname: token.fname,
                 lname: token.lname,
                 gender: token.gender,
                 dob: token.dob,
+                profileType: token.profileType, // Make sure this is included
+                personal_account: token.personal_account,
+                professional_account: token.professional_account,
             };
 
-            console.log("Session Callback - Final session:", session);
             return session;
         }
     }

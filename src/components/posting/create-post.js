@@ -1,3 +1,5 @@
+"use client";
+
 function CreatePost(){
     return(
         <div className="bg-white w-auto mx-6 my-3 items-center rounded-md shadow-xl" >

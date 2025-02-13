@@ -36,7 +36,7 @@ export default function Login() {
             <div className=" flex mt-20 justify-center items-center">
                 <h1 className="text-white text-8xl font-bold">S.T.A.G.E.</h1>
             </div>
-            <div className="flex justify-center mt-16">
+            <div className="flex justify-center mt-8">
                 <div ref = {formRef} className="relative">
                     
                     <div className="flex gap-8">
@@ -44,7 +44,7 @@ export default function Login() {
                         <button onClick={() => setView("signup")} className={`text-xl px-8 py-2 rounded-full border border-white transition-colors ${view === "signup" ? "bg-white text-black" : "bg-transparent text-white hover:bg-white hover:text-black"}`}>Sign Up</button>
                     </div>
                     {view && (
-                        <div className="absolute top-16 -left-20 bg-slate-600 bg-opacity-80 rounded-3xl p-8 w-auto ">
+                        <div className="absolute top-14 left-1/2 -translate-x-1/2 bg-slate-600 bg-opacity-80 rounded-3xl p-5 w-auto min-w-[600px]">
                             {view === "login" ? <LoginForm/> : <SignUpForm/>}
                         </div>
                     )}

@@ -1,3 +1,5 @@
+"use client";
+
 function ProfilePicture(){
     return(
         <div className="rounded-full p-3 bg-white">
