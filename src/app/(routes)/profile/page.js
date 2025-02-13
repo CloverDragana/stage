@@ -22,6 +22,7 @@ export default function Profile() {
   useEffect( () => {
     if(status === "unauthenticated"){
       router.push("/login");
+      router.refresh();
     }
   }, [status]);
 

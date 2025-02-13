@@ -41,7 +41,7 @@ export async function POST(req) {
                 }
             }
 
-            const dbQuery = await pgClient.query(
+            const createUser = await pgClient.query(
                 `INSERT INTO users (
                     fname, lname, email, username, password, 
                     profile_type, personal_account, professional_account
@@ -59,9 +59,17 @@ export async function POST(req) {
                 ]
             );
 
+            const userId = createUser.rows[0].userid;
+
+            await pgClient.query(
+                `INSERT INTO profiles (userid, profile_type)
+                VALUES ($1, $2)`,
+                [userId, signUpInfo.profileType.toLowerCase()]
+            );
+
             return new Response(JSON.stringify({
                 message: 'User successfully registered',
-                userId: dbQuery.rows[0].userid,
+                userId: createUser.rows[0].userid,
                 redirectUrl: "/profile"
             }), { status: 201 });
         } finally {

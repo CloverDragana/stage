@@ -13,12 +13,13 @@ function DeleteAccount ({onClose}) {
         setDeletion(true);
 
         try{
-            const response = await fetch('api/auth/delete-user',{
+            const response = await fetch('/api/auth/delete-user',{
                 method: "DELETE",
             });
 
             if (response.ok){
                 router.push('/login');
+                router.refresh();
             } else {
                 const error = await response.json();
                 alert(error.message || 'Failed to delete account');

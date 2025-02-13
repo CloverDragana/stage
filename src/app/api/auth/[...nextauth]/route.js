@@ -74,21 +74,33 @@ export const authOptions = {
                 token.dob = user.dob;
                 token.personal_account = user.personal_account;
                 token.professional_account = user.professional_account;
-                token.profileType = user.profileType; // Make sure to include this
+                token.profileType = user.profileType;
             }
 
-            if (trigger === "update" && session?.profileType) {
-                token.profileType = session.profileType;
+            // if (trigger === "update" && session?.profileType) {
+            //     token.profileType = session.profileType;
+            // }
+            if (trigger === "update") {
+                // Update profile type if provided
+                if (session?.profileType) {
+                    token.profileType = session.profileType;
+                }
+                // Update account flags if provided
+                if (session?.personal_account !== undefined) {
+                    token.personal_account = session.personal_account;
+                }
+                if (session?.professional_account !== undefined) {
+                    token.professional_account = session.professional_account;
+                }
             }
 
-            // When refreshing from database
             if (token.id || token.userId) {
                 const userId = token.id || token.userId;
                 const dbClient = await postgresConnection.connect();
                 try {
                     const result = await dbClient.query(
-                        `SELECT userid, fname, lname, username, email, gender, dob, profile_type 
-                         FROM users WHERE userid = $1`,
+                        `SELECT userid, fname, lname, username, email, gender, dob, profile_type, personal_account, professional_account 
+                        FROM users WHERE userid = $1`,
                         [userId]
                     );
                     
@@ -104,7 +116,9 @@ export const authOptions = {
                             lname: freshUser.lname,
                             gender: freshUser.gender,
                             dob: freshUser.dob,
-                            profileType: freshUser.profile_type // Make sure this is included
+                            profileType: freshUser.profile_type, // Make sure this is included
+                            personal_account: freshUser.personal_account,
+                            professional_account: freshUser.professional_account
                         };
                     }
                 } finally {

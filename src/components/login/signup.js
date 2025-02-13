@@ -89,6 +89,7 @@ function SignUpForm(){
                         setProfileType(type);
                     }}
                     initialProfileType={profileType}
+                    usedInSignUp= {true}
                 />
             </div>
             <FormRow label="First Name" id="fName" name="fName" type="text" required />

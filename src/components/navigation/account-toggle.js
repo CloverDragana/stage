@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import CreateSecondProfile from "@/components/popup-actions/profile-type-popup"
 
-const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType }) => {
+const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, usedInSignUp = false }) => {
     const { data: session, update } = useSession();
     const [profileSelection, setProfileSelection] = useState(initialProfileType || 'personal');
     const [isUpdating, setIsUpdating] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
+    const [pendingProfileCreation, setPendingProfileCreation] = useState(null);
 
     useEffect(() => {
         if (session?.user?.profileType) {
@@ -19,14 +22,31 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType })
         if (isUpdating) return;
         setIsUpdating(true);
         console.log('Toggle clicked:', type);
-
+    
         try {
+            if (usedInSignUp) {
+                setProfileSelection(type);
+                if (onToggle) {
+                    onToggle(type);
+                }
+                return;
+            }
+    
             const response = await fetch('/api/auth/update-profile-type', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ profileType: type })
             });
-
+    
+            const data = await response.json();
+            console.log(data);
+    
+            if(!usedInSignUp && !data.profileExists){
+                setPendingProfileCreation(type);
+                setShowPopup(true);
+                return;
+            }
+    
             if (response.ok) {
                 await update({ profileType: type });
                 setProfileSelection(type);
@@ -101,6 +121,7 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType })
                     Professional
                 </button>
             </div>
+            {showPopup && (<CreateSecondProfile onClose={() => setShowPopup(false)} profileCreationType={pendingProfileCreation}/>)}
             {/* Debug display - Remove in production */}
             <div className="text-xs mt-1">
                 Current session type: {session?.user?.profileType || 'loading...'}
