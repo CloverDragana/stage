@@ -21,7 +21,7 @@ export default function Profile() {
   // Change into a component to call in all pages
   useEffect( () => {
     if(status === "unauthenticated"){
-      router.push("/login");
+      router.push("/");
       router.refresh();
     }
   }, [status]);

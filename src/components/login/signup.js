@@ -56,7 +56,7 @@ function SignUpForm(){
                 throw new Error(result.error);
             }
 
-            router.push('/profile');
+            router.push("/profile");
             router.refresh();
             
         } catch (error){ 

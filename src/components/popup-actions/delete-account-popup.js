@@ -18,7 +18,7 @@ function DeleteAccount ({onClose}) {
             });
 
             if (response.ok){
-                router.push('/login');
+                router.push("/");
                 router.refresh();
             } else {
                 const error = await response.json();

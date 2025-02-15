@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import LogoutPopUp from "@/components/navigation/logout"
+import LogoutPopUp from "@/components/popup-actions/logout"
 import AccountToggle from "@/components/navigation/account-toggle";
 import CreateSecondProfile from "@/components/popup-actions/profile-type-popup";
 
@@ -16,7 +16,7 @@ function Navbar(){
         { title: "Notifications", href: ""},
         { title: "Messages", href: ""},
         { title: "Settings", href: "/account-setting"},
-        { title: "Log Out", href: "/login"}
+        { title: "Log Out", href: "/"}
     ];
 
     const handleLogout = () => {

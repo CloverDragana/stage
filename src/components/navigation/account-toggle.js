@@ -33,7 +33,7 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
             }
     
             const response = await fetch('/api/auth/update-profile-type', {
-                method: 'POST',
+                method: "PUT",
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ profileType: type })
             });
@@ -123,9 +123,9 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
             </div>
             {showPopup && (<CreateSecondProfile onClose={() => setShowPopup(false)} profileCreationType={pendingProfileCreation}/>)}
             {/* Debug display - Remove in production */}
-            <div className="text-xs mt-1">
+            {/* <div className="text-xs mt-1">
                 Current session type: {session?.user?.profileType || 'loading...'}
-            </div>
+            </div> */}
         </>
     );
 };

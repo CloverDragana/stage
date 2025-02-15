@@ -109,7 +109,7 @@ export default function AccountSetting() {
            
            if(response.ok) {
                alert("Account Deleted!");
-               router.push('/login');
+               router.push("/");
                router.refresh();
            } else {
                alert("Account deletion failed");

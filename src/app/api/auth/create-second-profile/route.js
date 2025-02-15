@@ -5,7 +5,6 @@ export async function POST(req) {
     try {
         const body = await req.json();
         const { userId, profileType } = body;
-        console.log (userId, profileType);
 
         if(!userId || !['personal', 'professional'].includes(profileType)){
             return new Response(JSON.stringify({error: 'User ID and Profile Type required to add additional profile'}), {status: 400});
