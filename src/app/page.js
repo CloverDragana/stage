@@ -1,21 +1,60 @@
-import Navbar from "@/components/navigation/navbar";
-import Topbar from "@/components/navigation/topbar";
+"use client";
 
-function Home() {
-  return (
-    <>
-      <Topbar />
-      <Navbar />
+import {useState, useRef, useEffect} from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import LoginForm from '@/components/login/login';
+import SignUpForm from '@/components/login/signup';
 
-      {/* <CreatePost /> */}
-    </>
-  );
+export default function Login() {
+
+    const { data: session, status} = useSession();
+    const router = useRouter();
+    const [view, setView] = useState(null);
+    const [showLogout, setShowLogout ] = useState(false);
+    const formRef = useRef(null);
+
+    useEffect ( () => {
+        if (status === "authenticated"){
+            router.push("/home-page");
+            router.refresh();
+            return;
+        }
+    }, [status]);
+
+    useEffect(() => {
+        const handleClickOffForm = (event) =>{
+            if (
+                formRef.current && !formRef.current.contains(event.target)
+            ) {
+                setView(null);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOffForm);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOffForm);
+        };
+    }, []);
+
+    return (
+        <div className="h-screen flex flex-col bg-[url('/theater-background.jpg')] bg-cover bg-center overflow-hidden">
+            <div className=" flex mt-20 justify-center items-center">
+                <h1 className="text-white text-8xl font-bold">S.T.A.G.E.</h1>
+            </div>
+            <div className="flex justify-center mt-8">
+                <div ref = {formRef} className="relative">
+                    <div className="flex gap-8">
+                        <button onClick={() => setView("login")} className={`text-xl px-8 py-2 rounded-full border border-white transition-colors ${view === "login" ? "bg-white text-black" : "bg-transparent text-white hover:bg-white hover:text-black"}`}>Log In</button>
+                        <button onClick={() => setView("signup")} className={`text-xl px-8 py-2 rounded-full border border-white transition-colors ${view === "signup" ? "bg-white text-black" : "bg-transparent text-white hover:bg-white hover:text-black"}`}>Sign Up</button>
+                    </div>
+                    {view && (
+                        <div className="absolute top-14 left-1/2 -translate-x-1/2 bg-slate-600 bg-opacity-80 rounded-3xl p-5 w-auto min-w-[600px]">
+                            {view === "login" ? <LoginForm/> : <SignUpForm/>}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
 }
-
-export default Home;
-
-
-// REMOVED PAGES
-// SETTINGS PAGES
-// SETTINGS COMPONENTS
-// POPUP TOGGLE SHIT

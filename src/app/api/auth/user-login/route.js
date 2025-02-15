@@ -29,10 +29,6 @@ export async function POST(req) {
             if (!passwordCorrect){
                 return new Response(JSON.stringify({error: 'Password incorrect'}), {status: 401});
             }
-
-            // if (password !== user.password){
-            //     return new Response(JSON.stringify({error: 'Password incorrect'}), {status: 401});
-            // }
             
             return new Response(JSON.stringify({
                 message: 'Now logged in!',

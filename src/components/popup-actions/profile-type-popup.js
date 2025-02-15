@@ -27,7 +27,7 @@ function CreateSecondProfile({onClose, profileCreationType}){
             if (response.ok){
 
                 const updatedResponse = await fetch('/api/auth/update-profile-type',{
-                    method: 'POST',
+                    method: "PUT",
                     headers: { 'Content-Type': 'application/json'},
                     body: JSON.stringify({ profileType: profileCreationType })
                 });
@@ -39,7 +39,7 @@ function CreateSecondProfile({onClose, profileCreationType}){
                         personal_account: profileCreationType === 'personal' ? true : session.user.personal_account
                     });
                     onClose();
-                    router.push('/profile');
+                    router.push("/profile");
                     router.refresh();
                 }
 

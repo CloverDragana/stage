@@ -20,7 +20,7 @@ function LoginForm(){
             });
     
             if(!result?.error) {
-                router.push('/');
+                router.push("/home-page");
                 router.refresh();
             }
             

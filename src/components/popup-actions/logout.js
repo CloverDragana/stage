@@ -7,7 +7,7 @@ function LogoutPopUp({onClose}){
     return (
         <ConfirmationPopUp
         title = "Are you sure you would like to log out?"
-        onConfirm = {() => signOut({ callbackUrl: "/login"})}
+        onConfirm = {() => signOut({ callbackUrl: "/"})}
         onClose = {onClose}
         confirmLabel = "Yes"
         closeLabel = "No"

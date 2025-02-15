@@ -2,8 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../[...nextauth]/route";
 import postgresConnection from "@/lib/db";
 
-export async function POST(req) {
-    console.log("🔹 API HIT: update-profile-type"); // Debug log
+export async function PUT(req) {
     try {
         const session = await getServerSession(authOptions);
         console.log(session);
@@ -58,8 +57,6 @@ export async function POST(req) {
         }
     } catch (error) {
         console.error('Error updating profile type:', error);
-        return new Response(JSON.stringify({ error: 'Internal server error' }), { 
-            status: 500 
-        });
+        return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
     }
 }
