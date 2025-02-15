@@ -1,3 +1,5 @@
+"use client";
+
 function PersonalTags() {
 
     const tags = [
@@ -8,9 +10,9 @@ function PersonalTags() {
         { title: 'Tag 5'}
     ];
     return(
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2 w-full">
             {tags.map((field) => (
-                <li key={field.title} className="w-full bg-secondary rounded-full w-40 p-2 text-white text-center font-bold">
+                <li key={field.title} className=" bg-secondary rounded-full w-40 p-2 text-white text-center font-bold">
                     {field.title}
                 </li>
             ))}
