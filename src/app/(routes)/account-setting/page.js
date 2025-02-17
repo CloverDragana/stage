@@ -11,7 +11,7 @@ import DeleteAccount from "@/components/popup-actions/delete-account-popup";
 import ConfirmationPopUp from "@/components/popup-actions/popup-structure";
 
 export default function AccountSetting() {
-    const {data: session, update} = useSession();
+    const {data: session, status, update} = useSession();
     const router = useRouter();
     const [showDeletePopUp, setDeletePopUp] = useState(false);
     const [updateSuccess, setUpdateSuccess] = useState(false);
@@ -27,26 +27,29 @@ export default function AccountSetting() {
 
     useEffect(() => {
 
-        if (!session || !session?.user) return
+        if (status === "unauthenticated"){
+            router.push("/");
+            router.refresh();
+        }
        
         updateFormData(prev => {
             if (
-               prev.fname === session.user.fname &&
-               prev.lname === session.user.lname &&
-               prev.username === session.user.username &&
-               prev.gender === session.user.gender &&
-               prev.email === session.user.email &&
+               prev.fname === session?.user?.fname &&
+               prev.lname === session?.user?.lname &&
+               prev.username === session?.user?.username &&
+               prev.gender === session?.user?.gender &&
+               prev.email === session?.user?.email &&
                prev.dob === (session.user.dob ? new Date(session.user.dob).toLocaleDateString("en-GB") : "")
             ){
                 return prev;
             }
             return {
-                fname: session.user.fname || "",
-                lname: session.user.lname || "",
-                username: session.user.username || "",
-                gender: session.user.gender || "",
-                email: session.user.email || "",
-                dob: session.user.dob ? new Date(session.user.dob).toLocaleDateString("en-GB") : "",
+                fname: session?.user?.fname || "",
+                lname: session?.user?.lname || "",
+                username: session?.user?.username || "",
+                gender: session?.user?.gender || "",
+                email: session?.user?.email || "",
+                dob: session?.user?.dob ? new Date(session.user.dob).toLocaleDateString("en-GB") : "",
             };
         });
    }, [session]);

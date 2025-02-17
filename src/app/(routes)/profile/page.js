@@ -18,7 +18,6 @@ export default function Profile() {
   console.log("Session data:", session); 
   console.log("Session status:", status);
 
-  // Change into a component to call in all pages
   useEffect( () => {
     if(status === "unauthenticated"){
       router.push("/");
