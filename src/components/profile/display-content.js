@@ -1,29 +1,36 @@
 "use client";
 
+import { useState } from "react";
 import StarWork from "@/components/profile/star-work";
 
 function ContentDisplay() {
+
+    const [ activeFilter, setActiveFilter ] = useState("Profile");
+    
     const ContentTitles = [
-        { title: 'Profile'},
-        { title: 'Collections'},
-        { title: 'Interactions'},
-        { title: 'Network'}
+        { title: "Profile"},
+        { title: "Collections"},
+        { title: "Interactions"},
+        { title: "Network"}
     ];
 
     return(
         <div className=" w-full">
-            <ul className="flex flex-row">
-                {ContentTitles.map((name) => (
-                    <li key={name.title} className="w-full flex justify-center hover-shadow-custom hover:text-black">
-                        <button href={name.href} className="block px-2 py-3">
-                            {name.title}
+            <div className="w-full">
+                <StarWork />
+            </div>
+            <ul className="flex flex-row py-1">
+                {ContentTitles.map((filter) => (
+                    <li key={filter.title} className={`w-full flex items-center justify-center border-white border -x-2 h-12
+                        ${activeFilter === filter.title ? "bg-transparent" : "bg-[rgb(217,217,217)]"}`}>
+                        <button onClick={() => setActiveFilter(filter.title)} className={`px-2 py-2 rounded-full w-36
+                            ${activeFilter === filter.title ? "bg-secondary text-white relative" : "bg-transparent text-black"}`}>
+                            {filter.title}
                         </button>
                     </li>
                 ))}
             </ul>
-            <div className="w-full">
-                <StarWork />
-            </div>
+            
         </div>
     );
 }
