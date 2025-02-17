@@ -22,7 +22,7 @@ function DeleteAccount ({onClose}) {
                 // If deletion was successful, sign out user
                 await signOut({
                     redirect: true,
-                    callbackUrl: "/"  // Changed to root path since that's your login page
+                    callbackUrl: "/" 
                 });
             } else {
                 const error = await response.json();
