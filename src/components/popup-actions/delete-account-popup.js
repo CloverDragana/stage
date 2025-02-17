@@ -1,29 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import ConfirmationPopUp from "./popup-structure";
 
 function DeleteAccount ({onClose}) {
     const [isDeleting, setDeletion] = useState(false);
-    const router = useRouter();
+    const { update } = useSession();
 
     const handleDeleteUser = async () => {
         setDeletion(true);
 
         try {
-            // First delete the user from database
             const response = await fetch('/api/auth/delete-user', {
                 method: "DELETE",
             });
 
             if (response.ok) {
-                // If deletion was successful, sign out user
-                await signOut({
-                    redirect: true,
-                    callbackUrl: "/" 
+                // Force session update
+                await update();
+                // Sign out and force reload
+                await signOut({ 
+                    redirect: false 
                 });
+                // Force a complete page reload
+                window.location.href = '/';
             } else {
                 const error = await response.json();
                 alert(error.message || 'Failed to delete account');
