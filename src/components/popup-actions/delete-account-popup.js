@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ConfirmationPopUp from "@/components/popup-actions/popup-structure"
+import { signOut } from "next-auth/react";
 
 function DeleteAccount ({onClose}) {
 
@@ -18,8 +19,15 @@ function DeleteAccount ({onClose}) {
             });
 
             if (response.ok){
+                
                 router.push("/");
                 router.refresh();
+
+                await signOut({
+                    redirect: true,
+                    callbackUrl: "/"
+                })
+
             } else {
                 const error = await response.json();
                 alert(error.message || 'Failed to delete account');
