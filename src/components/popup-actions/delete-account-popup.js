@@ -6,63 +6,36 @@ import ConfirmationPopUp from "@/components/popup-actions/popup-structure"
 import { signOut } from "next-auth/react";
 
 function DeleteAccount ({onClose}) {
-
     const [isDeleting, setDeletion] = useState(false);
     const router = useRouter();
 
     const handleDeleteUser = async () => {
         setDeletion(true);
 
-    //     try{
-    //         const response = await fetch('/api/auth/delete-user',{
-    //             method: "DELETE",
-    //         });
-
-    //         if (response.ok){
-                
-    //             router.push("/");
-    //             router.refresh();
-
-    //             await signOut({
-    //                 redirect: true,
-    //                 callbackUrl: "/"
-    //             })
-
-    //         } else {
-    //             const error = await response.json();
-    //             alert(error.message || 'Failed to delete account');
-    //         }
-    //     } catch(error) {
-    //         console.error('Account deletion error', error);
-    //         alert("Error deleting account");
-    //     } finally{
-    //         setDeletion(false);
-    //     }
-    // };
-
-    try {
-        const response = await fetch('/api/auth/delete-user', {
-            method: "DELETE",
-        });
-    
-        if (response.ok) {
-            // First sign out
-            await signOut({
-                callbackUrl: "/",
-                redirect: true
+        try {
+            const response = await fetch('/api/auth/delete-user', {
+                method: "DELETE",
             });
-            
-            // No need for router.push or router.refresh() since signOut with redirect will handle this
-        } else {
-            const error = await response.json();
-            alert(error.message || 'Failed to delete account');
+
+            if (response.ok) {
+                // First sign out
+                await signOut({
+                    redirect: false // Don't redirect here
+                });
+
+                // Then redirect
+                router.push('/login');
+                router.refresh();
+            } else {
+                const error = await response.json();
+                alert(error.message || 'Failed to delete account');
+            }
+        } catch(error) {
+            console.error('Account deletion error', error);
+            alert("Error deleting account");
+        } finally {
+            setDeletion(false);
         }
-    } catch(error) {
-        console.error('Account deletion error', error);
-        alert("Error deleting account");
-    } finally {
-        setDeletion(false);
-    }
     };
 
     return (
