@@ -3,20 +3,20 @@
 function PersonalTags() {
 
     const tags = [
-        { title: 'Tag 1'},
-        { title: 'Tag 2'},
-        { title: 'Tag 3'},
-        { title: 'Tag 4'},
+        { title: 'Painter'},
+        { title: 'Illustrator'},
+        { title: 'Abstract'},
+        { title: 'Sculpture'},
         { title: 'Tag 5'}
     ];
     return(
-        <ul className="flex flex-col gap-2 w-full">
+        <div className="flex flex-row gap-2">
             {tags.map((field) => (
-                <li key={field.title} className=" bg-secondary rounded-full w-40 p-2 text-white text-center font-bold">
+                <span key={field.title} className=" bg-[rgb(217,217,217)] rounded-xl px-4 p-2 text-black text-center font-bold text-sm w-fit">
                     {field.title}
-                </li>
+                </span>
             ))}
-        </ul>
+        </div>
     );
 }
 
