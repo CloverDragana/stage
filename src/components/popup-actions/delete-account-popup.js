@@ -13,31 +13,56 @@ function DeleteAccount ({onClose}) {
     const handleDeleteUser = async () => {
         setDeletion(true);
 
-        try{
-            const response = await fetch('/api/auth/delete-user',{
-                method: "DELETE",
-            });
+    //     try{
+    //         const response = await fetch('/api/auth/delete-user',{
+    //             method: "DELETE",
+    //         });
 
-            if (response.ok){
+    //         if (response.ok){
                 
-                router.push("/");
-                router.refresh();
+    //             router.push("/");
+    //             router.refresh();
 
-                await signOut({
-                    redirect: true,
-                    callbackUrl: "/"
-                })
+    //             await signOut({
+    //                 redirect: true,
+    //                 callbackUrl: "/"
+    //             })
 
-            } else {
-                const error = await response.json();
-                alert(error.message || 'Failed to delete account');
-            }
-        } catch(error) {
-            console.error('Account deletion error', error);
-            alert("Error deleting account");
-        } finally{
-            setDeletion(false);
+    //         } else {
+    //             const error = await response.json();
+    //             alert(error.message || 'Failed to delete account');
+    //         }
+    //     } catch(error) {
+    //         console.error('Account deletion error', error);
+    //         alert("Error deleting account");
+    //     } finally{
+    //         setDeletion(false);
+    //     }
+    // };
+
+    try {
+        const response = await fetch('/api/auth/delete-user', {
+            method: "DELETE",
+        });
+    
+        if (response.ok) {
+            // First sign out
+            await signOut({
+                callbackUrl: "/",
+                redirect: true
+            });
+            
+            // No need for router.push or router.refresh() since signOut with redirect will handle this
+        } else {
+            const error = await response.json();
+            alert(error.message || 'Failed to delete account');
         }
+    } catch(error) {
+        console.error('Account deletion error', error);
+        alert("Error deleting account");
+    } finally {
+        setDeletion(false);
+    }
     };
 
     return (
