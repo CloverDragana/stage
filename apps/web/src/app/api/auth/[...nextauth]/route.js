@@ -1,8 +1,10 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import postgresConnection from "@/lib/db";
-import { compare } from 'bcryptjs';
-const jwt = require('jsonwebtoken');
+import { db } from "@stage/database";
+import { comparePassword, hashPassword } from "@stage/auth";
+import jwt from 'jsonwebtoken';
+
+console.log("Auth package loaded:", !!comparePassword);
 
 export const authOptions = {
     session: {
@@ -17,31 +19,33 @@ export const authOptions = {
                 password: {}
             },
             async authorize(credentials) {
-                const dbClient = await postgresConnection.connect();
+
+            try{
+            
+                const dbClient = await db.connect();
                 try {
+
                     const dbQuery = await dbClient.query(
-                        `SELECT userid, fullname, username, email, gender, dob, password, 
-                         personal_account, professional_account, profile_type 
-                        FROM users 
-                        WHERE username = $1`,
+                        `   SELECT *
+                            FROM users 
+                            WHERE username = $1`,
                         [credentials?.username]
                     );
-
-                    console.log("Database query result:", dbQuery.rows);
                     
                     if (dbQuery.rows.length === 0) {
                         console.error("User not found:", credentials?.username);
-                        throw new Error("User not found");
+                        throw new Error("User does not exist");
                     }
                     
                     const user = dbQuery.rows[0];
-                    const correctPassword = await compare(credentials?.password || "", user.password);
+
+                    const correctPassword = await comparePassword(credentials?.password || "", user.password);
                     
                     if (!correctPassword) {
-                        throw new Error("Invalid password");
+                        console.log("Password incorrect for user:", credentials?.username);
+                        throw new Error("Password is incorrect");
                     }
 
-                    // Use the profile_type from database instead of deriving it
                     const returnUser = {
                         userid: user.userid,
                         username: user.username,
@@ -58,6 +62,10 @@ export const authOptions = {
                 } finally {
                     dbClient.release();
                 }
+            }catch (error){
+                console.error("Detailed auth error:", error);
+                return null;
+            }
             }
         })
     ],
@@ -116,7 +124,7 @@ export const authOptions = {
 
             if (token.id || token.userId) {
                 const userId = token.id || token.userId;
-                const dbClient = await postgresConnection.connect();
+                const dbClient = await db.connect();
                 try {
                     const result = await dbClient.query(
                         `SELECT userid, fullname, username, email, gender, dob, profile_type, personal_account, professional_account 
@@ -180,8 +188,17 @@ export const authOptions = {
 
             return session;
         }
+    }, 
+    pages: {
+        signIn: '/login',
+        error: '/login'
     }
 };
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
+
+
+//purely for loggin in as the register api route works for inserting into table
+
+//next auth checks logging in 

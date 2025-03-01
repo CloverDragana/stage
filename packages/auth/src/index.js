@@ -1,11 +1,15 @@
-import { verifyToken, generateToken } from './jwt';
-import { createAuthMiddleware } from './middleware';
-import { hashPassword, comparePassword } from './passwords';
+// import { verifyToken, generateToken } from './jwt';
+// import { authMiddleware } from './middleware';
+// import { hashPassword, comparePassword } from './passwords';
 
-export {
-  verifyToken,
-  generateToken,
-  createAuthMiddleware,
-  hashPassword,
-  comparePassword
+const { verifyToken, generateToken } = require('./jwt');
+const { authMiddleware } = require('./middleware');
+const { hashPassword, comparePassword } = require('./passwords');
+
+module.exports = {
+    generateToken,
+    verifyToken,
+    authMiddleware,
+    hashPassword,
+    comparePassword
 };

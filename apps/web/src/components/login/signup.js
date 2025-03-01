@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import AccountToggle from "../navigation/account-toggle";
-import FormRow from "@/components/login/login-form-row";
+import FormRow from "./login-form-row";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-function SignUpForm(){ 
+function SignUpForm({ onError }){ 
     const router = useRouter();
     const [profileType, setProfileType] = useState('personal');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const getApiUrl = () => {
+        return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    };
 
     const handleSignUpForm = async (event) => { 
         event.preventDefault(); 
@@ -20,8 +24,7 @@ function SignUpForm(){
             const formData = new FormData(event.target); 
 
             const userInfo = { 
-                fName: formData.get('fName'), 
-                lName: formData.get('lName'), 
+                fullname: formData.get('fullname'),
                 email: formData.get('email'), 
                 username: formData.get('username'), 
                 password: formData.get('password'),
@@ -30,21 +33,22 @@ function SignUpForm(){
                 professional_account: profileType === 'professional'
             }; 
 
-            console.log('Submitting with profile type:', profileType);
-         
-            const response = await fetch('/api/auth/register-user', { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json'}, 
-                body: JSON.stringify(userInfo), 
-            }); 
+            const response = await fetch(`${getApiUrl()}/api/users/register`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(userInfo),
+            });
+
+            if (!response.ok){
+                const errorDetails= await response.json();
+                throw new Error(errorDetails.error || "Registration failed");
+            }
 
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error || "Registration failed");
-            }
-
-            console.log('Sign up successful');
+            // if (!data.ok) {
+            //     throw new Error(data.error || "Registration failed");
+            // }
             
             const result = await signIn('credentials', {
                 username: userInfo.username,
@@ -53,22 +57,31 @@ function SignUpForm(){
             });
             
             if (result?.error) {
-                throw new Error(result.error);
+                onError("Registration details aren't valid");
+                return;
+            } else {
+                router.push("/profile");
+                router.refresh();
             }
-
-            router.push("/profile");
-            router.refresh();
             
         } catch (error){ 
             console.error('Registration error:', error); 
             
             if (error.message.includes('email already registered')) {
+                onError("This email is already registered. Please use a different email.");
+                return;
                 alert('This email is already registered. Please use a different email.');
             } else if (error.message.includes('username already taken')) {
+                onError("This username is already taken. Please choose a different username.");
+                return;
                 alert('This username is already taken. Please choose a different username.');
             } else if (error.message.includes('Invalid email')) {
+                onError("Please enter a valid email address.");
+                return;
                 alert('Please enter a valid email address.');
             } else {
+                onError("Registration failed. Please try again.");
+                return;
                 alert(error.message || 'Registration failed. Please try again.');
             }
         } finally {
@@ -92,8 +105,7 @@ function SignUpForm(){
                     usedInSignUp= {true}
                 />
             </div>
-            <FormRow label="First Name" id="fName" name="fName" type="text" required />
-            <FormRow label="Last Name" id="lName" name="lName" type="text" required />
+            <FormRow label="Full Name" id="fullname" name="fullname" type="text" required />
             <FormRow label="Email Address" id="email" name="email" type="email" required />
             <FormRow label="Username" id="username" name="username" type="text" required />
             <FormRow label="Password" id="password" name="password" type="password" required />

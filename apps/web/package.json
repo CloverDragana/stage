@@ -1,5 +1,5 @@
 {
-  "name": "stage",
+  "name": "@stage/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
+    "@stage/auth": "*",
+    "@stage/config": "*",
+    "@stage/database": "*",
     "bcryptjs": "^2.4.3",
     "next": "15.1.6",
     "next-auth": "^4.24.11",

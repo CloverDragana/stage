@@ -11,14 +11,26 @@ const ProfileCard = () => {
     const [inEditMode, setInEditMode] = useState(false);
     const [updatedProfileData, setUpdatedProfileData] = useState({creative_slogan: "", bio: ""});
 
+    const getApiUrl = () => {
+        return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    };
+
     useEffect( () => {
         const fetchProfileContent = async () => {
             if (!session?.user?.id || !session?.user?.profileType) return;
 
             try {
-                const response = await fetch(`/api/auth/get-profile-content?userId=${session.user.id}&profileType=${session.user.profileType}`, {
+                const userId = session.user.id;
+                const profileType = session.user.profileType;
+        
+                console.log("Fetching profile with:", { userId, profileType });
+
+                const response = await fetch(`${getApiUrl()}/api/profiles/get-profile-content?id=${userId}&profileType=${profileType}`, {
                     method: "GET",
-                    headers: { 'Content-Type' : 'application/json' }
+                    headers: { 
+                        "Content-Type" : "application/json",
+                        "Authorization": `Bearer ${session.accessToken}`
+                    }
                 });
         
                 if (!response.ok){
@@ -55,9 +67,12 @@ const ProfileCard = () => {
                 bio: updatedProfileData.bio
             });
 
-            const response = await fetch('/api/auth/update-profile', {
+            const response = await fetch(`${getApiUrl()}/api/profiles/update-profile`, {
                 method: "PUT",
-                headers: { 'Content-Type' : 'application/json' },
+                headers: { 
+                    "Content-Type" : "application/json",
+                    "Authorization": `Bearer ${session.accessToken}`
+                },
                 body: JSON.stringify({
                     userId: session.user.id,
                     profileType: session.user.profileType,
@@ -95,7 +110,7 @@ const ProfileCard = () => {
             <div className="pl-64 pr-8 ">
                 <div className=" max-w-full">
                     <div className="flex flex-col mt-2">
-                        <span className="text-4xl font-bold">{session?.user?.profileType === 'personal' ? session?.user?.username : `${session?.user?.fname} ${session?.user?.lname}`.trim()}</span>
+                        <span className="text-4xl font-bold">{session?.user?.profileType === 'personal' ? session?.user?.username : `${session?.user?.fullname}`.trim()}</span>
                         {inEditMode ? (
                             <>
                                 <input 

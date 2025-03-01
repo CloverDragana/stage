@@ -31,8 +31,8 @@ export default function Profile() {
   
     return (
       <div className="min-h-screen">
-        <Topbar />
         <Navbar />
+        <Topbar />
         <div className="ml-[194px] mt-[78px]">
             <ProfileCard />
             <ContentDisplay />

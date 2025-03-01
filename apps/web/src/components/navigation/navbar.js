@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import LogoutPopUp from "@/components/popup-actions/logout"
-import AccountToggle from "@/components/navigation/account-toggle";
-import CreateSecondProfile from "@/components/popup-actions/profile-type-popup";
+import LogoutPopUp from "../popup-actions/logout"
+import AccountToggle from "./account-toggle";
+import CreateSecondProfile from "../popup-actions/profile-type-popup";
 
 function Navbar(){
 
@@ -25,11 +25,10 @@ function Navbar(){
 
     return(
         <>
-        <nav className="fixed top-[78px] left-0 h-screen w-42 m-0 flex flex-col bg-primary text-black text-xl shadow-lg">
+            <nav className="fixed top-[78px] left-0 h-screen w-42 m-0 flex flex-col bg-primary text-black text-xl shadow-lg">
                 <div className="py-3 px-1">
                     <AccountToggle toggleSize="navbar" usedInSignUp ={false}/>
                 </div>
-            {/* <nav className="fixed top-16 left-0 h-screen w-42 m-0 mt-6 flex flex-col bg-primary text-black text-xl shadow-lg"> */}
                 <ul className="flex flex-col flex-grow">
                     {navItems.map((item) => (
                         <li key={item.title} className={`w-full ${item.title === "Log Out" ? "mt-[350px]" : ""}`}>

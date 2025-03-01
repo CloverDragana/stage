@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function ConfirmationPopUp ({
     title,
@@ -13,8 +13,8 @@ function ConfirmationPopUp ({
     isLoading = false
 }) {
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
-            <div className=" bg-white w-1/3 p-6 rounded-lg shadow-lg flex flex-col gap-6 text-center">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-[9999] w-full h-full">
+            <div className=" bg-white p-6 rounded-lg shadow-lg flex flex-col gap-6 text-center max-w-[50%] min-w-[300px] w-auto relative z-[1000]">
                 <h2 className="text-xl font-bold">{title}</h2>
                 {message && <p>{message}</p>}
                 <div className="flex justify-center gap-4">

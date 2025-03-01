@@ -21,8 +21,7 @@ export default function AccountSetting() {
     };
 
     const [formData, updateFormData] = useState({
-        fname: "", 
-        lname: "", 
+        fullname: "", 
         username: "",
         gender: "", 
         email: "", 
@@ -38,8 +37,7 @@ export default function AccountSetting() {
        
         updateFormData(prev => {
             if (
-               prev.fname === session?.user?.fname &&
-               prev.lname === session?.user?.lname &&
+               prev.fullname === session?.user?.fullname &&
                prev.username === session?.user?.username &&
                prev.gender === session?.user?.gender &&
                prev.email === session?.user?.email &&
@@ -48,8 +46,7 @@ export default function AccountSetting() {
                 return prev;
             }
             return {
-                fname: session?.user?.fname || "",
-                lname: session?.user?.lname || "",
+                fullname: session?.user?.fullname || "",
                 username: session?.user?.username || "",
                 gender: session?.user?.gender || "",
                 email: session?.user?.email || "",
@@ -118,11 +115,7 @@ export default function AccountSetting() {
    const handleDeleteAccount = async (event) => {
        event.preventDefault();
        try {
-        //    const response = await fetch("/api/auth/delete-user", {
-        //        method: "DELETE"
-        //    });
-
-           const response = await fetch(`${getApiUrl()}/api/users/delete-user`, {
+            const response = await fetch(`${getApiUrl()}/api/users/delete-user`, {
             method: "DELETE",
             headers: {
                 "Authorization": `Bearer ${session.accessToken}`
@@ -154,14 +147,10 @@ export default function AccountSetting() {
                 </div>
                 <div className="w-full px-3 py-6 justify-between">
                     <form className="flex flex-col gap-10" onSubmit={handleUpdatedInfo}>
-                        <div className="flex justify-between">
+                        <div className="flex justify-evenly">
                             <div className="flex flex-row gap-4">
-                                <label htmlFor="fname" className="flex text-white items-center ">First Name</label>
-                                <input type="text" name="fname" placeholder="First Name" value={formData.fname} onChange={handleInfoChange} className="rounded-full p-2 text-center" />
-                            </div>
-                            <div className="flex flex-row gap-4">
-                                <label htmlFor="lname" className="flex text-white items-center ">Last Name</label>
-                                <input type="text" name="lname" placeholder="Last Name" value={formData.lname} onChange={handleInfoChange} className="rounded-full p-2 text-center" />
+                                <label htmlFor="fullname" className="flex text-white items-center ">Full Name</label>
+                                <input type="text" name="fullname" placeholder="Full Name" value={formData.fullname} onChange={handleInfoChange} className="rounded-full p-2 text-center" />
                             </div>
                             <div className="flex flex-row gap-4">
                                 <label htmlFor="username" className="flex text-white items-center ">Username</label>

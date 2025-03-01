@@ -21,8 +21,9 @@ export default function Home() {
 
     return (
         <>
-        <Topbar />
-        <Navbar />
+            <Navbar />
+            <Topbar />
+        
 
         {/* <CreatePost /> */}
         </>

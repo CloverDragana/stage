@@ -10,6 +10,10 @@ function CreateSecondProfile({onClose, profileCreationType}){
     const { data: session, update } = useSession();
     const router = useRouter();
 
+    const getApiUrl = () => {
+        return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    };
+
     const handleCreateSecondProfile = async () => {
 
         if (!session?.user?.userId || !profileCreationType){
@@ -18,17 +22,24 @@ function CreateSecondProfile({onClose, profileCreationType}){
         }
 
         try{
-            const response = await fetch('/api/auth/create-second-profile',{
-                method: "POST",
-                headers: { 'Content-Type': 'application/json'}, 
+            const response = await fetch(`${getApiUrl()}/api/profiles/create-second-profile`,{
+                method: "PUT",
+                headers: { 
+                    'Content-Type': 'application/json',
+                    "Authorization": `Bearer ${session.accessToken}`
+                }, 
                 body: JSON.stringify({userId: session.user.userId, profileType: profileCreationType}), 
             });
 
+
             if (response.ok){
 
-                const updatedResponse = await fetch('/api/auth/update-profile-type',{
+                const updatedResponse = await fetch(`${getApiUrl()}/api/profiles/update-profile-type`,{
                     method: "PUT",
-                    headers: { 'Content-Type': 'application/json'},
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        "Authorization": `Bearer ${session.accessToken}`
+                    },
                     body: JSON.stringify({ profileType: profileCreationType })
                 });
 

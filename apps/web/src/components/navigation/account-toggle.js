@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import CreateSecondProfile from "@/components/popup-actions/profile-type-popup"
+import CreateSecondProfile from "../popup-actions/profile-type-popup"
 
 const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, usedInSignUp = false }) => {
     const { data: session, update } = useSession();
@@ -10,6 +10,10 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
     const [isUpdating, setIsUpdating] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
     const [pendingProfileCreation, setPendingProfileCreation] = useState(null);
+
+    const getApiUrl = () => {
+        return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    };
 
     useEffect(() => {
         if (session?.user?.profileType) {
@@ -32,10 +36,21 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
                 return;
             }
     
-            const response = await fetch('/api/auth/update-profile-type', {
+            // const response = await fetch('/api/auth/update-profile-type', {
+            //     method: "PUT",
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ profileType: type })
+            // });
+
+            const response = await fetch(`${getApiUrl()}/api/profiles/update-profile-type`, {
                 method: "PUT",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ profileType: type })
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${session.accessToken}` // Get token from session
+                },
+                body: JSON.stringify({
+                    profileType: type 
+                })
             });
     
             const data = await response.json();

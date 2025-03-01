@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import ConfirmationPopUp from "@/components/popup-actions/popup-structure"
+import ConfirmationPopUp from "./popup-structure"
 
 function LogoutPopUp({onClose}){
     return (
