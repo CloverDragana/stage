@@ -1,0 +1,9 @@
+{
+    "name": "@stage/config",
+    "version": "0.1.0",
+    "private": true,
+    "main": "src/index.js",
+    "dependencies": {
+      "dotenv": "^16.0.3"
+    }
+}
