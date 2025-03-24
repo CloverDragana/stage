@@ -1,7 +1,6 @@
-# dependencies
-node_modules
+# Dependencies
 node_modules/
-/.pnp
+**/node_modules/
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -12,76 +11,91 @@ node_modules/
 
 # Turbo
 .turbo
+**/.turbo/
 
-# testing
-/coverage
+# Testing
+coverage/
+**/coverage/
 
-# next.js
-/.next
-/.next/
-.next
-.next/
-next.lock/
+# Build outputs
+dist/
+**/dist/
+build/
+**/build/
 out/
-build
-dist
+**/out/
 
-# Complete pattern for all webpack hot updates
-*.hot-update.js
-*.hot-update.js.map
-*.hot-update.json
-**/*.hot-update.js
-**/*.hot-update.js.map
-**/*.hot-update.json
-**/*.webpack.hot-update.json
+# Next.js
+.next/
+**/.next/
+**/.next/**/*
+**/out/
+next-env.d.ts
+**/.next/cache/**
 
-# Complete pattern for the specific structure you're seeing
-apps/web/.next/
-apps/web/.next/static/
-apps/web/.next/static/webpack/
-**/apps/web/.next/static/webpack/*
-**/static/webpack/*
+# Webpack related
+**/*.hot-update.*
+**/.webpack/
+**/.serverless/
 
-# misc
-.DS_Store
-*.pem
+# Environment variables
 .env*
+**/.env*
 !.env.example
-.eslintcache
+!**/.env.example
 
-# debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+**/logs/
+*.log
 
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# OS files
+.DS_Store
+**/.DS_Store
+*.pem
+Thumbs.db
 
 # IDE files
-.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
 .idea/
+**/.idea/
 *.swp
 *.swo
+*.sublime-*
+.project
+.classpath
 
-# Next.js build files - very specific
-apps/web/.next/**
-apps/web/.next/static/**
-apps/web/.next/static/webpack/**
-apps/web/.next/cache/**
+# TypeScript
+*.tsbuildinfo
+**/*.tsbuildinfo
 
-# Webpack hot updates
-**/*.hot-update.js
-**/*.hot-update.json
-**/webpack.*.hot-update.js
-**/webpack.*.hot-update.json
+# Vercel
+.vercel
+**/.vercel
 
-# Next.js cache files
-apps/web/.next/cache/
-**/next/cache/
-**/*.pack.gz
-**/*.pack.gz.old
+# Misc - caches and temporary files
+.cache/
+**/.cache/
+.temp/
+**/.temp/
+tmp/
+**/tmp/
+
+# Specific to monorepo structure (adjust as needed)
+apps/*/.next/
+apps/*/.next/cache/
+apps/*/.next/static/
+apps/*/*cache*/
+packages/*/dist/
+packages/*/build/
+
+# Package files
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
