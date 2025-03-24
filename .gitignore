@@ -25,16 +25,43 @@ build/
 out/
 **/out/
 
-# Next.js
+# Next.js - Improved patterns
 .next/
 **/.next/
-**/.next/**/*
-**/out/
-next-env.d.ts
-**/.next/cache/**
+apps/*/.next/
+apps/web/.next/
+apps/web/.next/**/*
+**/next-env.d.ts
+
+# Next.js specific patterns to match your structure
+apps/web/.next/static/
+apps/web/.next/static/**/*
+apps/web/.next/static/chunks/
+apps/web/.next/static/chunks/**/*
+apps/web/.next/static/webpack/
+apps/web/.next/static/webpack/**/*
+apps/web/.next/static/css/
+apps/web/.next/static/media/
+apps/web/.next/server/
+apps/web/.next/server/**/*
+apps/web/.next/cache/
+apps/web/.next/cache/**/*
+
+# Specific manifest files
+apps/web/.next/**/*.json
+apps/web/.next/**/*manifest*.json
+apps/web/.next/**/*-manifest.json
+apps/web/.next/server/**/*-manifest.js
+
+# Hot update files
+**/*.hot-update.js
+**/*.hot-update.json
+**/*.webpack.hot-update.*
 
 # Webpack related
-**/*.hot-update.*
+webpack.*.hot-update.js
+*.hot-update.js
+*.hot-update.json
 **/.webpack/
 **/.serverless/
 
@@ -87,13 +114,9 @@ Thumbs.db
 tmp/
 **/tmp/
 
-# Specific to monorepo structure (adjust as needed)
-apps/*/.next/
-apps/*/.next/cache/
-apps/*/.next/static/
-apps/*/*cache*/
-packages/*/dist/
-packages/*/build/
+# Font files
+**/*.woff2
+**/*.ttf
 
 # Package files
 **/package-lock.json
