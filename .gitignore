@@ -1,28 +1,53 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
-/node_modules
+node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
+!.yarn/sdks
 !.yarn/versions
+
+# Turbo
+.turbo
 
 # testing
 /coverage
 
 # next.js
+/.next
 /.next/
-/out/
+.next
+.next/
+next.lock/
+out/
+build
+dist
 
-# production
-/build
+# Complete pattern for all webpack hot updates
+*.hot-update.js
+*.hot-update.js.map
+*.hot-update.json
+**/*.hot-update.js
+**/*.hot-update.js.map
+**/*.hot-update.json
+**/*.webpack.hot-update.json
+
+# Complete pattern for the specific structure you're seeing
+apps/web/.next/
+apps/web/.next/static/
+apps/web/.next/static/webpack/
+**/apps/web/.next/static/webpack/*
+**/static/webpack/*
 
 # misc
 .DS_Store
 *.pem
+.env*
+!.env.example
+.eslintcache
 
 # debug
 npm-debug.log*
@@ -30,12 +55,15 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo

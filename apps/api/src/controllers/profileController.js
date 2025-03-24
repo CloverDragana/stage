@@ -13,6 +13,10 @@ export const updateProfileData = async (userId, requestUserId, profileData) => {
   if (userId !== requestUserId) {
     throw new Error('Forbidden: Cannot update another user\'s profile');
   }
+
+  if (String(userId) !== String(requestUserId)) {
+    throw new Error('Forbidden: Cannot update another user\'s profile');
+  }
   
   // Update profile in database
   const updatedProfile = await profileModel.updateProfile(userId, profileType, { creativeSlogan, bio });
@@ -26,6 +30,36 @@ export const updateProfileData = async (userId, requestUserId, profileData) => {
     creativeSlogan,
     bio
   };
+};
+
+export const updateProfilePicture = async (userId, requestUserId, profileType, profilePicturePath) => {
+  if (!userId || !profileType) {
+    throw new Error('UserId and Profile Type are required');
+  }
+
+  // Ensure users can only update their own profiles
+  if (parseInt(userId, 10) !== parseInt(requestUserId, 10)) {
+    throw new Error('Forbidden: Cannot update another user\'s profile');
+  }
+
+  if (!profilePicturePath) {
+    throw new Error('Profile picture path is required');
+  }
+
+  const updatedProfile = await profileModel.updateProfilePicture(
+    userId, 
+    profileType, 
+    profilePicturePath
+  );
+
+  if (!updatedProfile) {
+    throw new Error('Profile not found');
+  }
+
+  return {
+    message: 'Profile picture updated successfully',
+    profilePicture: profilePicturePath
+  }
 };
 
 export const updateProfileType = async (userId, profileType) => {
@@ -104,8 +138,32 @@ export const getProfileContent = async (userId, profileType) => {
   
   return {
     message: 'Profile data retrieved successfully',
+    userId: profileData.userid,
+    username: profileData.username,
+    fullname: profileData.fullname,
+    profileId: profileData.profileid,
+    profileType: profileData.profile_type,
     profilePicture: profileData.profile_picture,
     creativeSlogan: profileData.creative_slogan,
     bio: profileData.bio
+  };
+};
+
+export const getProfileId = async (userId, profileType) => {
+  // Validate required fields
+  if (!userId || !['personal', 'professional'].includes(profileType)) {
+    throw new Error('User ID and Profile Type required to retrieve profile');
+  }
+  
+  // Get profile data
+  const profileData = await profileModel.getProfileIdByUserIdAndType(userId, profileType);
+  
+  if (!profileData) {
+    throw new Error('Profile data not found');
+  }
+  
+  return {
+    message: 'Profile data retrieved successfully',
+    profileId: profileData.profileid
   };
 };

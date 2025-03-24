@@ -5,16 +5,54 @@
 // const profileController = require('../controllers/profileController');
 
 import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { verifyToken } from '../middleware/auth.js';
 import * as profileController from '../controllers/profileController.js';
 
 const router = express.Router();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename)
+
+const webPublicPath = path.join(__dirname, '../../../web/public');
+const imageUploadDir = path.join(webPublicPath, 'uploads/profile');
+
+
+if (!fs.existsSync(imageUploadDir)) {
+  fs.mkdirSync(imageUploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, imageUploadDir); 
+  },
+  filename: function(req, file, cb) {
+    
+    const userId = req.body.userId || req.body.id;
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const fileName = `${userId}_${uniqueSuffix}${path.extname(file.originalname)}`;
+    
+    req.finalFileName = fileName;
+    cb(null, fileName);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
 
 // Route to update profile specific information in the profiles table 
 router.put('/update-profile', verifyToken, async (req, res) => {
     try {
         if (!req.user) {
           return res.status(401).json({ error: 'Not authenticated' });
+        }
+
+        if (!req.body.userId || !req.body.profileType) {
+          return res.status(400).json({ error: 'UserId and Profile Type are required' });
         }
         
         const result = await profileController.updateProfileData(
@@ -41,6 +79,44 @@ router.put('/update-profile', verifyToken, async (req, res) => {
         
         return res.status(500).json({ error: 'Error updating profile data' });
       }
+});
+
+router.put('/update-profile-picture', verifyToken, upload.single('file'), async (req, res) => {
+  try{
+    if(!req.user){
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    console.log('Profile picture upload request:', { 
+      body: req.body,
+      file: req.file ? req.file.filename : 'No file',
+      user: req.user.id
+    });
+
+    if (!req.body.userId || !req.body.profileType) {
+      return res.status(400).json({ error: 'UserId and Profile Type are required' });
+    }
+
+    // const profilePicturePath = `/uploads/profile/${req.file.filename}`;
+    console.log("file name", req.file.filename);
+
+    const result = await profileController.updateProfilePicture(
+      req.body.userId,
+      req.user.id,
+      req.body.profileType,
+      req.file.filename
+    );
+
+    return res.status(200).json(result);
+
+  } catch (error){
+    console.error('Error updating profile picture:', error);
+    return res.status(500).json({ error: 'Unable to update profile picture' });
+  }
 });
 
 // Route to update profile type that the users is trying to access
@@ -105,7 +181,8 @@ router.put('/create-second-profile', verifyToken, async (req, res) => {
 });
 
 // Route to retrieve profile type specific information
-router.get('/get-profile-content', async (req, res) => {
+router.get('/get-profile-content', verifyToken, async (req, res) => {
+
     try {
         const result = await profileController.getProfileContent(
           req.query.id,
@@ -127,5 +204,22 @@ router.get('/get-profile-content', async (req, res) => {
         return res.status(500).json({ error: 'Error getting data from database' });
       }
 });
+
+router.get('/get-profile-id', verifyToken, async (req, res) => {
+
+  try {
+      const result = await profileController.getProfileId(
+        req.query.userId,
+        req.query.profileType
+      );
+      
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error('Failed to get data from profiles table:', error);
+      
+      return res.status(500).json({ error: 'Error getting data from database' });
+    }
+});
+
 
 export default router;

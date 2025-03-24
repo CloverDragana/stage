@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import StarWork from "@/components/profile/star-work";
+import NetworkList from "./display-network";
 
-function ContentDisplay() {
+function ContentDisplay({ userData }) {
 
     const [ activeFilter, setActiveFilter ] = useState("Profile");
     
@@ -14,12 +15,27 @@ function ContentDisplay() {
         { title: "Network"}
     ];
 
+    const changeContent = () => {
+        switch(activeFilter){
+            case "Profile":
+                return null;
+            case "Collections":
+                return null;
+            case "Interactions":
+                return null;
+            case "Network":
+                return <NetworkList userData={userData} />;
+            default:
+                return null;
+        }
+    };
+
     return(
         <div className=" w-full">
             <div className="w-full">
                 <StarWork />
             </div>
-            <ul className="flex flex-row py-1">
+            <ul className="flex flex-row py-1 shadow-lg">
                 {ContentTitles.map((filter) => (
                     <li key={filter.title} className={`w-full flex items-center justify-center border-white border -x-2 h-12
                         ${activeFilter === filter.title ? "bg-transparent" : "bg-[rgb(217,217,217)]"}`}>
@@ -30,7 +46,9 @@ function ContentDisplay() {
                     </li>
                 ))}
             </ul>
-            
+            <div className="w-full mt-4">
+                {changeContent()}  
+            </div>
         </div>
     );
 }

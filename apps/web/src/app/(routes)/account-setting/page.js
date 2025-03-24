@@ -137,8 +137,8 @@ export default function AccountSetting() {
 
    return (
     <div className="min-h-screen">
-        <Topbar />
         <Navbar />
+        <Topbar />
         <div className="ml-[194px] mt-[78px] p-6">
             <div className="rounded-3xl bg-secondary p-2">
                 <div className="flex flex-row items-center gap-8">

@@ -23,8 +23,6 @@ export default function Home() {
         <>
             <Navbar />
             <Topbar />
-        
-
         {/* <CreatePost /> */}
         </>
     );

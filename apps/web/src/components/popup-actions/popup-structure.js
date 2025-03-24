@@ -13,16 +13,16 @@ function ConfirmationPopUp ({
     isLoading = false
 }) {
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-[9999] w-full h-full">
-            <div className=" bg-white p-6 rounded-lg shadow-lg flex flex-col gap-6 text-center max-w-[50%] min-w-[300px] w-auto relative z-[1000]">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-[10000] w-full h-full style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}">
+            <div className=" bg-white p-6 rounded-lg shadow-lg flex flex-col gap-6 text-center max-w-[50%] min-w-[300px] w-auto relative z-[10000]">
                 <h2 className="text-xl font-bold">{title}</h2>
                 {message && <p>{message}</p>}
                 <div className="flex justify-center gap-4">
                     {showOneButton ? (
                         <button type="button" onClick={onClose} disabled={isLoading} className="rounded-full p-2 w-16 bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]">{closeLabel}</button>
                     ) : ( <>
-                        <button type="button" onClick={onConfirm} disabled={isLoading} className="rounded-full p-2 w-16 text-red-600 border-2 border-red-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]">{isLoading ? "..." : confirmLabel}</button> 
-                        <button type="button" onClick={onClose} disabled={isLoading} className="rounded-full p-2 w-16 bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]">{closeLabel}</button>
+                        <button type="button" onClick={onConfirm} disabled={isLoading} className="rounded-full p-2 w-16 bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]">{isLoading ? "..." : confirmLabel}</button>
+                        <button type="button" onClick={onClose} disabled={isLoading} className="rounded-full p-2 w-16 text-red-600 border-2 border-red-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]">{closeLabel}</button>
                         </> 
                     )}
                 </div>

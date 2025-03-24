@@ -31,8 +31,11 @@ export const registerUser = async (userData) => {
   });
   
   // Create profile
-  await userModel.createProfile(newUser.userid, userData.profileType);
+  const createUser = await userModel.createProfile(newUser.userid, userData.profileType);
   
+  if (!createUser){
+    throw new Error('User could not be created');
+  }
   return {
     message: 'User successfully registered',
     userId: newUser.userid
@@ -66,3 +69,17 @@ export const deleteUserAccount = async (userId) => {
   
   return { message: 'Account deleted successfully!' };
 };
+
+// export const searchUsers = async(query) => {
+//   if (!query|| query.trim().length < 2){
+//     throw new Error('Search query must be greater than 2 characters long');
+//   }
+
+//   const searchResults = await userModel.searchUsers(query);
+
+//   if (!searchResults){
+//     throw new Error ('Could not find search results');
+//   }
+
+//   return { results: searchResults };
+// }

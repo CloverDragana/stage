@@ -7,10 +7,22 @@ export const updateProfile = async (userId, profileType, data) => {
   const result = await db.query(
     `UPDATE profiles SET
       creative_slogan = $1,
-      bio = $2
-    WHERE userid = $3 and profile_type = $4
+      bio = $2,
+    WHERE userid = $4 and profile_type = $5
     RETURNING *`,
-    [creativeSlogan, bio, userId, profileType]
+    [creativeSlogan, bio, profilePicture, userId, profileType]
+  );
+  
+  return result.rows.length > 0 ? result.rows[0] : null;
+};
+
+export const updateProfilePicture = async (userId, profileType, profilePictureUrl) => {
+  const result = await db.query(
+    `UPDATE profiles SET
+      profile_picture = $1, updated_at = CURRENT_TIMESTAMP
+    WHERE userid = $2 and profile_type = $3
+    RETURNING *`,
+    [profilePictureUrl, userId, profileType]
   );
   
   return result.rows.length > 0 ? result.rows[0] : null;
@@ -18,7 +30,23 @@ export const updateProfile = async (userId, profileType, data) => {
 
 export const getProfileByUserIdAndType = async (userId, profileType) => {
   const result = await db.query(
-    'SELECT * FROM profiles WHERE userid = $1 and profile_type = $2',
+    `SELECT p.*, u.username, u.fullname, u.personal_account, u.professional_account 
+    FROM profiles p
+    JOIN users u ON p.userid = u.userid
+    WHERE p.userid = $1 and p.profile_type = $2`,
+    [userId, profileType]
+  );
+  
+  return result.rows.length > 0 ? result.rows[0] : null;
+};
+
+
+export const getProfileIdByUserIdAndType = async (userId, profileType) => {
+  const result = await db.query(
+    `SELECT profileid
+    FROM profiles p
+    JOIN users u ON p.userid = u.userid
+    WHERE p.userid = $1 and p.profile_type = $2`,
     [userId, profileType]
   );
   

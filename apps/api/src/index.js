@@ -7,8 +7,10 @@ import express from 'express';
 import cors from 'cors';
 import { db } from '@stage/database';
 import authRoutes from './routes/auth.js';
-import profilesRoutes from './routes/profiles.js';
 import usersRoutes from './routes/users.js';
+import profilesRoutes from './routes/profiles.js';
+import searchRoutes from './routes/search.js';
+import connectionsRouter from './routes/connections.js';
 import { verifyToken } from './middleware/auth.js';
 import dotenv from 'dotenv';
 
@@ -36,7 +38,7 @@ const testConnection = async () => {
 
 // Middleware
 app.use(cors({
-  origin: process.env.NEXT_PUBLIC_URL,
+  origin: process.env.CORS_ORIGIN,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -55,6 +57,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/profiles', profilesRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/connections', connectionsRouter);
 
 app.listen(PORT, () => {
   console.log(`API server running on port ${PORT}`);

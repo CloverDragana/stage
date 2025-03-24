@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import CreateSecondProfile from "../popup-actions/profile-type-popup"
+import { useRouter } from 'next/navigation'; 
+import CreateSecondProfile from "../popup-actions/profile-type-popup";
 
 const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, usedInSignUp = false }) => {
     const { data: session, update } = useSession();
+    const router = useRouter(); 
     const [profileSelection, setProfileSelection] = useState(initialProfileType || 'personal');
     const [isUpdating, setIsUpdating] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
@@ -36,12 +38,6 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
                 return;
             }
     
-            // const response = await fetch('/api/auth/update-profile-type', {
-            //     method: "PUT",
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ profileType: type })
-            // });
-
             const response = await fetch(`${getApiUrl()}/api/profiles/update-profile-type`, {
                 method: "PUT",
                 headers: { 
@@ -62,12 +58,33 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
                 return;
             }
     
+            
+            //     // Add URL update when profile type changes
+            //     if (session?.user?.id) {
+            //         router.push(`/profile/${session.user.id}?profileType=${type}`);
+            //         router.refresh();
+            //     }
+                
+            //     console.log("Profile type updated successfully:", type);
             if (response.ok) {
                 await update({ profileType: type });
                 setProfileSelection(type);
                 
                 if (onToggle) {
                     onToggle(type);
+                }
+                
+                // Add URL update AND force a full page reload
+                if (session?.user?.id) {
+                    const newUrl = `/profile/${session.user.id}?profileType=${type}`;
+                    
+                    // Use router.push first for proper navigation
+                    router.push(newUrl);
+                    
+                    // Then force a full page reload after a small delay
+                    setTimeout(() => {
+                        window.location.href = newUrl;
+                    }, 100);
                 }
                 
                 console.log("Profile type updated successfully:", type);
@@ -137,10 +154,6 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
                 </button>
             </div>
             {showPopup && (<CreateSecondProfile onClose={() => setShowPopup(false)} profileCreationType={pendingProfileCreation}/>)}
-            {/* Debug display - Remove in production */}
-            {/* <div className="text-xs mt-1">
-                Current session type: {session?.user?.profileType || 'loading...'}
-            </div> */}
         </>
     );
 };
