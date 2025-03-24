@@ -67,3 +67,21 @@ next-env.d.ts
 .idea/
 *.swp
 *.swo
+
+# Next.js build files - very specific
+apps/web/.next/**
+apps/web/.next/static/**
+apps/web/.next/static/webpack/**
+apps/web/.next/cache/**
+
+# Webpack hot updates
+**/*.hot-update.js
+**/*.hot-update.json
+**/webpack.*.hot-update.js
+**/webpack.*.hot-update.json
+
+# Next.js cache files
+apps/web/.next/cache/
+**/next/cache/
+**/*.pack.gz
+**/*.pack.gz.old
