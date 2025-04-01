@@ -1,59 +1,77 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import Image from "next/image";
+import { useSession } from "next-auth/react";
 
-function ProfilePicture({ userId, profileType, isEditing = false, imageUpdate }) {
+function ProfilePicture({ userId, profileType, isEditing = false, imageUpdate, isOwnProfile }) {
+    const { data: session } = useSession();
     const inputFileRef = useRef(null);
     const [profilePicture, setProfilePicture] = useState(null);
     const [previewProfilePicture, setPreviewProfilePicture] = useState(null);
-    const [initialLoad, setInitialLoad] = useState(true);
-    
-    // Store the initially loaded profile picture
-    const [storedProfilePicture, setStoredProfilePicture] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        console.log("ProfilePicture component rendering with:", {userId, profileType});
 
-        // Only attempt to load from localStorage on initial mount or 
-        // when userId/profileType legitimately change (not become undefined)
-        if (!initialLoad && (!userId || !profileType || userId === '0')) {
-            return;
-        }
-        
-        if (!userId || !profileType) {
-            console.log("Missing userId or profileType, using default image");
+        console.log("ProfilePicture rendering for:", {
+            userId,
+            profileType,
+            isOwnProfile
+        });
+        if (!userId || !profileType || userId === '0' || profileType === 'default') {
+            console.log("Missing or invalid userId or profileType, using default image");
             setProfilePicture("/userIcon.jpeg");
+            setIsLoading(false);
             return;
         }
 
-        try {
-            const localStoragePP = localStorage.getItem(`profilePicture-${userId}-${profileType}`);
+        const fetchProfilePicture = async () => {
+            try {
+                console.log("id profile pic: ", userId)
+                if (isOwnProfile && session?.user?.id) {
+                    
+                    const localStoragePP = localStorage.getItem(`profilePicture-${session?.user?.id}-${session?.user?.profileType}`);
+                    if (localStoragePP && (localStoragePP.startsWith('data:image')) || localStoragePP.startsWith('/uploads')) {
+                        setProfilePicture(localStoragePP);
+                    }
+                }
 
-            if (localStoragePP) {
-                console.log('localStoragePP:', localStoragePP);
-                setProfilePicture(localStoragePP);
-                setStoredProfilePicture(localStoragePP);
-                setInitialLoad(false);
-            } else {
-                console.log("nothing found in local storage");
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+                
+                const response = await fetch(
+                    `${apiUrl}/api/profiles/get-profile-picture?userId=${userId}&profileType=${profileType}`, 
+                    { 
+                        method: "GET", 
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${session.accessToken}` } }
+                );
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.profilePicture) {
+                        const imagePath = `/uploads/profile/${data.profilePicture}`;
+                        setProfilePicture(imagePath);
+                        
+                        if (isOwnProfile) {
+                            localStorage.setItem(`profilePicture-${session?.user?.id}-${session?.user?.profileType}`, imagePath);
+                        }
+                    } else {
+                        console.log("No profile picture in database, using default");
+                        setProfilePicture("/userIcon.jpeg");
+                    }
+                } else {
+                    setProfilePicture("/userIcon.jpeg");
+                }
+            } catch (err) {
                 setProfilePicture("/userIcon.jpeg");
-                setInitialLoad(false);
+            } finally {
+                setIsLoading(false);
             }
-        } catch (err) {
-            console.error("Error accessing localStorage:", err);
-            setProfilePicture("/userIcon.jpeg");
-            setInitialLoad(false);
-        }
-    }, [userId, profileType, initialLoad]);
-    
-    // If userId becomes undefined after initial load, use the stored profile picture
-    useEffect(() => {
-        if (!initialLoad && (!userId || userId === '0') && storedProfilePicture) {
-            console.log("Using stored profile picture as userId is now undefined");
-            setProfilePicture(storedProfilePicture);
-        }
-    }, [userId, initialLoad, storedProfilePicture]);
+        };
+
+        fetchProfilePicture();
+    }, [userId, profileType, isOwnProfile, session]);
 
     const handleImageChangeClick = () => {
         if (isEditing && inputFileRef.current){
@@ -66,7 +84,7 @@ function ProfilePicture({ userId, profileType, isEditing = false, imageUpdate })
             const file = event.target.files[0];
             const fileReader = new FileReader();
 
-            fileReader.onload = (event) => {
+            fileReader.onload = () => {
                 const base64Image = fileReader.result;
                 setPreviewProfilePicture(base64Image);
 
@@ -87,15 +105,17 @@ function ProfilePicture({ userId, profileType, isEditing = false, imageUpdate })
         };
     }, [previewProfilePicture]);
 
-    const displayPreview = previewProfilePicture || profilePicture;
+    const displayPreview = previewProfilePicture || profilePicture || "/userIcon.jpeg";
 
     return(
         <div className="relative rounded-full p-3 bg-white overflow-hidden" onClick={handleImageChangeClick}>
             <img 
-                src={displayPreview || "/userIcon.jpeg"} 
+                src={displayPreview} 
                 alt="profile" 
                 className="rounded-full w-48 h-48 object-cover"
-                onError={() => {
+                onError={(e) => {
+                    console.log("Error loading image, falling back to default");
+                    e.target.src = "/userIcon.jpeg";
                     setProfilePicture("/userIcon.jpeg");
                 }}
             />

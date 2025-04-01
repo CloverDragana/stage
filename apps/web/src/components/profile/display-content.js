@@ -15,6 +15,8 @@ function ContentDisplay({ userData }) {
         { title: "Network"}
     ];
 
+     
+
     const changeContent = () => {
         switch(activeFilter){
             case "Profile":
@@ -32,9 +34,9 @@ function ContentDisplay({ userData }) {
 
     return(
         <div className=" w-full">
-            <div className="w-full">
+            {/* <div className="w-full">
                 <StarWork />
-            </div>
+            </div> */}
             <ul className="flex flex-row py-1 shadow-lg">
                 {ContentTitles.map((filter) => (
                     <li key={filter.title} className={`w-full flex items-center justify-center border-white border -x-2 h-12

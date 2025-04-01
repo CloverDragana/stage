@@ -45,6 +45,7 @@ export const updateProfilePicture = async (userId, requestUserId, profileType, p
   if (!profilePicturePath) {
     throw new Error('Profile picture path is required');
   }
+  console.log(`Updating profile picture for user ${userId}, profile type ${profileType}, with image ${profilePicturePath}`)
 
   const updatedProfile = await profileModel.updateProfilePicture(
     userId, 
@@ -135,6 +136,12 @@ export const getProfileContent = async (userId, profileType) => {
   if (!profileData) {
     throw new Error('Profile data not found');
   }
+
+  let profilePicture = null;
+  if (profileData.profile_picture) {
+    // Return just the filename - the frontend will construct the full path
+    profilePicture = profileData.profile_picture;
+  }
   
   return {
     message: 'Profile data retrieved successfully',
@@ -143,7 +150,7 @@ export const getProfileContent = async (userId, profileType) => {
     fullname: profileData.fullname,
     profileId: profileData.profileid,
     profileType: profileData.profile_type,
-    profilePicture: profileData.profile_picture,
+    // profilePicture: profilePicture,
     creativeSlogan: profileData.creative_slogan,
     bio: profileData.bio
   };
@@ -165,5 +172,24 @@ export const getProfileId = async (userId, profileType) => {
   return {
     message: 'Profile data retrieved successfully',
     profileId: profileData.profileid
+  };
+};
+
+export const getProfilePicture = async (userId, profileType) => {
+  // Validate required fields
+  if (!userId || !['personal', 'professional'].includes(profileType)) {
+    throw new Error('User ID and Profile Type required to retrieve profile');
+  }
+  
+  // Get profile data
+  const profileData = await profileModel.getProfilePictureByUserIdAndType(userId, profileType);
+  
+  if (!profileData) {
+    throw new Error('Profile data not found');
+  }
+  
+  return {
+    message: 'Profile data retrieved successfully',
+    profilePicture: profileData.profile_picture
   };
 };

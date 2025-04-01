@@ -23,7 +23,7 @@ export const createFollow = async (followerProfileId, followedProfileId) => {
 export const getProfileFollowers = async (profileId) => {
 
     const result = await db.query(
-        `SELECT p.profileid, p.userid, p.profile_type, u.username, u.fullname
+        `SELECT p.profileid, p.userid, p.profile_type, p.profile_picture, u.username, u.fullname
         FROM follows f
         JOIN profiles p ON f.follower_profileid = p.profileid
         JOIN users u ON p.userid = u.userid
@@ -36,6 +36,7 @@ export const getProfileFollowers = async (profileId) => {
         userId: row.userid,
         profileId: row.profileid,
         profileType: row.profile_type,
+        profilePicture: row.profile_picture,
         username: row.username,
         fullname: row.fullname,
         displayName: row.profile_type === 'personal' ? row.username : row.fullname
@@ -44,7 +45,7 @@ export const getProfileFollowers = async (profileId) => {
 
 export const getProfileFollowing = async (profileId) => {
     const result = await db.query(
-        `SELECT p.profileid, p.userid, p.profile_type, u.username, u.fullname
+        `SELECT p.profileid, p.userid, p.profile_type, p.profile_picture, u.username, u.fullname
         FROM follows f
         JOIN profiles p ON f.followed_profileid = p.profileid
         JOIN users u ON p.userid = u.userid
@@ -57,6 +58,7 @@ export const getProfileFollowing = async (profileId) => {
         userId: row.userid,
         profileId: row.profileid,
         profileType: row.profile_type,
+        profilePicture: row.profile_picture,
         username: row.username,
         fullname: row.fullname,
         displayName: row.profile_type === 'personal' ? row.username : row.fullname

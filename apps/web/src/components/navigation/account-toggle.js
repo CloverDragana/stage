@@ -7,7 +7,6 @@ import CreateSecondProfile from "../popup-actions/profile-type-popup";
 
 const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, usedInSignUp = false }) => {
     const { data: session, update } = useSession();
-    const router = useRouter(); 
     const [profileSelection, setProfileSelection] = useState(initialProfileType || 'personal');
     const [isUpdating, setIsUpdating] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
@@ -42,7 +41,7 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
                 method: "PUT",
                 headers: { 
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${session.accessToken}` // Get token from session
+                    "Authorization": `Bearer ${session.accessToken}`
                 },
                 body: JSON.stringify({
                     profileType: type 
@@ -57,15 +56,7 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
                 setShowPopup(true);
                 return;
             }
-    
-            
-            //     // Add URL update when profile type changes
-            //     if (session?.user?.id) {
-            //         router.push(`/profile/${session.user.id}?profileType=${type}`);
-            //         router.refresh();
-            //     }
-                
-            //     console.log("Profile type updated successfully:", type);
+
             if (response.ok) {
                 await update({ profileType: type });
                 setProfileSelection(type);
@@ -73,18 +64,18 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
                 if (onToggle) {
                     onToggle(type);
                 }
+
+                const currentUrl = window.location.href;
+                const isProfilePage = currentUrl.includes('/profile/');
                 
-                // Add URL update AND force a full page reload
                 if (session?.user?.id) {
-                    const newUrl = `/profile/${session.user.id}?profileType=${type}`;
-                    
-                    // Use router.push first for proper navigation
-                    router.push(newUrl);
-                    
-                    // Then force a full page reload after a small delay
-                    setTimeout(() => {
-                        window.location.href = newUrl;
-                    }, 100);
+                    if (isProfilePage){
+
+                        const newUrl = `/profile/${session.user.id}?profileType=${type}`;
+
+                        window.history.pushState({}, '', newUrl);
+                        window.location.reload();
+                    }
                 }
                 
                 console.log("Profile type updated successfully:", type);

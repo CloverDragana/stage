@@ -31,7 +31,7 @@ export default function AccountSetting() {
     useEffect(() => {
 
         if (status === "unauthenticated"){
-            router.push("/");
+            router.push("/login");
             router.refresh();
         }
        

@@ -31,7 +31,7 @@ export default function Profile() {
 
   useEffect( () => {
     if(status === "unauthenticated"){
-      router.push("/");
+      router.push("/login");
       router.refresh();
     }
 
@@ -64,6 +64,7 @@ export default function Profile() {
   
         const data = await response.json();
         setProfileData(data);
+        console.log("data :", data);
       } catch (error){
         console.log("Error getting profile data", error);
       }

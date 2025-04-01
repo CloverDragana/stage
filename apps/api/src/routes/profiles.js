@@ -220,6 +220,21 @@ router.get('/get-profile-id', verifyToken, async (req, res) => {
       return res.status(500).json({ error: 'Error getting data from database' });
     }
 });
+router.get('/get-profile-picture', verifyToken, async (req, res) => {
+
+  try {
+      const result = await profileController.getProfilePicture(
+        req.query.userId,
+        req.query.profileType
+      );
+      
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error('Failed to get data from profiles table:', error);
+      
+      return res.status(500).json({ error: 'Error getting data from database' });
+    }
+});
 
 
 export default router;
