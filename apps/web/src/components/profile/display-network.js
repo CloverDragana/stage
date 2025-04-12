@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import UserProfileDisplay from "../profile/user-profile-display";
+import { useRouter } from "next/navigation";
 
 const NetworkList = ({ userData }) => {
     const {data: session} = useSession();
+    const router = useRouter();
     const [ users, setUsers ]  = useState([]);
     const [activeFilter, setActiveFilter] = useState("followers");
 
@@ -27,10 +29,10 @@ const NetworkList = ({ userData }) => {
                 : `get-following?profileId=${userData.profileId}`;
 
                 const response = await fetch(`${getApiUrl()}/api/connections/${networkEndpoint}`, {
-                    method: 'GET',
-                    headers: {
+                    method: "GET",
+                    headers: { 
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${session?.accessToken}`,
+                        "Authorization": `Bearer ${session.accessToken}`
                     }
                 });
 
@@ -48,6 +50,14 @@ const NetworkList = ({ userData }) => {
         getProfileNetwork();
     }, [userData, activeFilter, session]);
 
+    const handleClickedResult = (user) => {
+        // console.log("Clicked user:", userId, profileType);
+        router.push(`/profile/${user.userId}?profileType=${user.profileType}`);
+        router.refresh();
+        setActiveFilter("");
+        setUsers([]);
+    };
+
     return (
         <div>
             <div className="flex justify-evenly space-x-4">
@@ -63,7 +73,9 @@ const NetworkList = ({ userData }) => {
                             <UserProfileDisplay
                             key={`${user.userId}-${user.profileType}`}
                             user = {user}
-                            onClick={null}
+                            onClick={handleClickedResult}
+                            isOnPost={false}
+                            accessToken={session.accessToken}
                             />
                         ))}
                     </div>

@@ -14,13 +14,22 @@ router.post('/create-post', verifyToken, upload.single('file'), async (req, res)
             return res.status(401).json({ error: 'Not authenticated' });
         }
 
-        const { profileId, postText } = req.body;
+        console.log('Request body:', req.body);
+        console.log('File:', req.file ? 'Exists' : 'Does not exist');
+
+        const { userId, profileType, postText } = req.body;
+
+        console.log('Extracted values:', { userId, profileType, postText });
+
+        if (!userId || !profileType) {
+            return res.status(400).json({ error: 'User Id and Profile Type are required' });
+        }
+        
+        // const file = req.file;
+        // const bytes = req.file.arrayBuffer();
+        // const buffer = Buffer.from(bytes);
         let fileData = null;
-        
-        const file = req.file;
-        const bytes = req.file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        
+
         if (req.file) {
             fileData = {
                 originalname: req.file.originalname,
@@ -30,8 +39,8 @@ router.post('/create-post', verifyToken, upload.single('file'), async (req, res)
         }
         
         const result = await postController.createPost(
-            profileId,
-            req.user.id,
+            userId,
+            profileType,
             postText,
             fileData
         );

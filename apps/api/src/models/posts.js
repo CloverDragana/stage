@@ -1,6 +1,5 @@
 import { db } from '@stage/database';
 
-
 export const createPost = async (userId, profileType, postData) => {
   const { postText, fileData } = postData;
 
@@ -8,16 +7,24 @@ export const createPost = async (userId, profileType, postData) => {
 
   let mediaUrls = null;
 
-  if (fileData){
-    
+  const profileIdResult = await db.query(
+    `SELECT profileid FROM profiles 
+    WHERE userid = $1 AND profile_type = $2`,
+    [userId, profileType]
+  );
+
+  if (profileIdResult.rows.length === 0) {
+      throw new Error('Profile not found');
   }
-  
+
+  const profileId = profileIdResult.rows[0].profileid;
+    
   const result = await db.query(
     `INSERT INTO posts (profileid, post_type, post_text, media_urls)
     VALUES ($1, $2, $3, $4) RETURNING *`,
     [profileId, postType, postText, mediaUrls]
   );
-  
+    
   return result.rows.length > 0 ? result.rows[0] : null;
 };
 

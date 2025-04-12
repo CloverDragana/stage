@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import ProfilePicture from "./profile-picture";
 import PersonalTags from "./personal-tags";
 import StarWork from "./star-work";
+import BannerImage from "./banner-image";
 
 const ProfileCard = ({ userData, isOwnProfile}) => {
     const { data: session, status: sessionStatus } = useSession();
@@ -13,7 +14,9 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
     const [updatedProfileData, setUpdatedProfileData] = useState({
         creativeSlogan: "", 
         bio: "", 
-        profilePicture: null
+        profilePicture: null,
+        bannerImage: null,
+        starWorkImages: [ null, null, null]
     });
     
     const [status, setStatus] = useState("idle");
@@ -25,13 +28,13 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
     useEffect(() => {
         
         if (userData) {
-            console.log("user d:", userData);
             setProfileData(userData);
-            console.log("profile d:", profileData);
             setUpdatedProfileData({
                 creativeSlogan: userData.creativeSlogan || "",
                 bio: userData.bio || "",
-                profilePicture: null
+                profilePicture: null,
+                bannerImage: null,
+                starWorkImages: [ null, null, null]
             });
 
             if (!isOwnProfile && session?.user?.id) {
@@ -58,7 +61,6 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                 return;
             }
                 
-            console.log("id: ", userId," profile type", profileType);
             const response = await fetch(`${getApiUrl()}/api/profiles/get-profile-content?id=${userId}&profileType=${profileType}`, {
                 method: "GET",
                 headers: { 
@@ -74,9 +76,6 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
             }
 
             const profileData = await response.json();
-            console.log("printing profile data : ", profileData);
-
-            console.log(profileData.profilePicture); 
 
             if (profileData.profilePicture) {
                 const imagePath = `/uploads/profile/${profileData.profilePicture}`;
@@ -93,7 +92,9 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
             setUpdatedProfileData({
                 creativeSlogan: profileData.creativeSlogan || "",
                 bio: profileData.bio || "",
-                profilePicture: null
+                profilePicture: null,
+                bannerImage: null,
+                starWorkImages: [ null, null, null]
             });
 
         } catch (error) {
@@ -220,20 +221,75 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
         });
     };
 
-    const handleProfilePictureUpdate = (imageFile, base64Image) => {
+    // const handleProfilePictureUpdate = (imageFile, base64Image) => {
+    //     if (!isOwnProfile || !imageFile) return;
+
+    //     setUpdatedProfileData(prev => ({
+    //         ...prev,
+    //         profilePicture: imageFile
+    //     }));
+        
+    //     localStorage.setItem(
+    //         `profilePicture-${session?.user?.id}-${session?.user?.profileType}`, 
+    //         base64Image
+    //     );
+    // };
+
+    const handleProfileImagesUpdate = (imageFile, base64Image, imageType, imageIndex) => {
         if (!isOwnProfile || !imageFile) return;
 
-        // Store the file object in state for later upload
-        setUpdatedProfileData(prev => ({
-            ...prev,
-            profilePicture: imageFile
-        }));
-        
-        // Store in localStorage for immediate display in the ProfilePicture component
-        localStorage.setItem(
-            `profilePicture-${session?.user?.id}-${session?.user?.profileType}`, 
-            base64Image
-        );
+        console.log("handleProfileImagesUpdate called with:", {
+            imageType,
+            imageIndex,
+            fileType: imageFile.type,
+            fileSize: imageFile.size
+        });
+
+        if (imageType === 'profile'){
+            setUpdatedProfileData(prev => ({
+                ...prev,
+                profilePicture: imageFile
+            }));
+            
+            localStorage.setItem(
+                `profilePicture-${session?.user?.id}-${session?.user?.profileType}`, 
+                base64Image
+            );
+        } else if (imageType === 'banner'){
+            setUpdatedProfileData(prev => ({
+                ...prev,
+                bannerImage: imageFile
+            }));
+            
+            localStorage.setItem(
+                `bannerImage-${session?.user?.id}-${session?.user?.profileType}`, 
+                base64Image
+            );
+        } else if (imageType === 'starWork' && imageIndex !== undefined ){
+
+            console.log("Updating starWork with index:", imageIndex);
+
+            const updateStarWorks = [ ...updatedProfileData.starWorkImages];
+            updateStarWorks[imageIndex] = imageFile;
+
+            setUpdatedProfileData(prev => ({
+                ...prev,
+                starWorkImages: updateStarWorks
+            }));
+
+            try {
+                const localStorageImageArray = localStorage.getItem(`starWorkImages-${session?.user?.id}-${session?.user?.profileType}`);
+                let imagesArray = localStorageImageArray ? JSON.parse(localStorageImageArray) : [null, null, null];
+
+                imagesArray[imageIndex] = base64Image;
+                localStorage.setItem(
+                    `starWorkImages-${session?.user?.id}-${session?.user?.profileType}`, 
+                    JSON.stringify(imagesArray)
+                );
+            } catch (error){
+                console.log("Error updating star works from local storage", error);
+            }
+        }
     };
 
     const saveUpdatedProfileData = async () => {
@@ -243,7 +299,12 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
         
         try {
             let isSuccess = true;
-            let updatedProfilePicture = null;
+
+            let updatedProfileImages = {
+                profilePicture: null,
+                bannerImage: null,
+                starWorkImages: [null, null, null]
+            };
             
             if (updatedProfileData.profilePicture) {
 
@@ -254,6 +315,12 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                 formData.append("file", updatedProfileData.profilePicture);
                 
                 console.log("Uploading profile picture...");
+                console.log("Form data:", Object.fromEntries(formData.entries().map(([key, value]) => {
+                    return [key, key === 'file' ? `File: ${value.name}` : value];
+                })));
+
+                // const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
                 const pictureResponse = await fetch(`${getApiUrl()}/api/profiles/update-profile-picture`, {
                     method: "PUT",
                     headers: {
@@ -264,23 +331,115 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                 
                 if (!pictureResponse.ok) {
                     console.log("Failed to update profile picture");
+                    const errorData = await pictureResponse.json();
+                    console.error("Error response:", errorData);
                     isSuccess = false;
                 } else {
                     console.log("Profile picture updated successfully");
 
                     const profilePictureData = await pictureResponse.json();
+                    console.log("Profile picture response:", profilePictureData);
 
                     if (profilePictureData.profilePicture) {
-                        // Store the full path
-                        updatedProfilePicture = `/uploads/profile/${profilePictureData.profilePicture}`;
+                        updatedProfileImages.profilePicture = `/uploads/profile/${profilePictureData.profilePicture}`;
+                        console.log("Setting profile picture path in localStorage to:", updatedProfileImages.profilePicture);
                         
                         // Update localStorage with the new path
                         localStorage.setItem(
                             `profilePicture-${session.user.id}-${session.user.profileType}`, 
-                            updatedProfilePicture
+                            updatedProfileImages.profilePicture
                         );
+                    }
+                }
+            }
+
+            if (updatedProfileData.bannerImage) {
+
+                const formData = new FormData();
+
+                formData.append("userId", session.user.id);
+                formData.append("profileType", session.user.profileType);
+                formData.append("file", updatedProfileData.bannerImage);
+                
+                console.log("Uploading Banner Image...");
+                const bannerResponse = await fetch(`${getApiUrl()}/api/profiles/update-banner-image`, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `Bearer ${session.accessToken}`
+                    },
+                    body: formData
+                });
+                
+                if (!bannerResponse.ok) {
+                    console.log("Failed to update Banner Image");
+                    isSuccess = false;
+                } else {
+                    console.log("Banner Image updated successfully");
+
+                    const bannerImageData = await bannerResponse.json();
+
+                    if (bannerImageData.bannerImage) {
+                        updatedProfileImages.bannerImage = `/uploads/profile/${bannerImageData.bannerImage}`;
                         
-                        console.log("Profile picture updated in localStorage:", updatedProfilePicture);
+                        // Update localStorage with the new path
+                        localStorage.setItem(
+                            `bannerImage-${session.user.id}-${session.user.profileType}`, 
+                            updatedProfileImages
+                        );
+                    }
+                }
+            }
+
+            if (updatedProfileData.starWorkImages) {
+
+                for (let image = 0; image < updatedProfileData.starWorkImages.length; image++){
+                    const starWorkImage = updatedProfileData.starWorkImages[image];
+                    if(starWorkImage){
+                        const formData = new FormData();
+
+                        formData.append("userId", session.user.id);
+                        formData.append("profileType", session.user.profileType);
+                        formData.append("file", starWorkImage);
+                        formData.append("imageIndex", image.toString());
+
+                        console.log("Preparing to upload starWork image:", {
+                            index: image,
+                            formDataEntries: Array.from(formData.entries()).map(([key, value]) => {
+                                return {key, value: key === 'file' ? 'File object' : value};
+                            })
+                        });
+                        
+                        console.log("Uploading Star Work Image with index:", image);
+                        console.log("Form data:", Object.fromEntries(formData)); 
+                        console.log("Uploading Star Work Images...");
+                        const starWorkResponse = await fetch(`${getApiUrl()}/api/profiles/update-star-work-image`, {
+                            method: "PUT",
+                            headers: {
+                                "Authorization": `Bearer ${session.accessToken}`
+                            },
+                            body: formData
+                        });
+
+                        if (!starWorkResponse.ok) {
+                            console.log("Failed to update Star Works");
+                            isSuccess = false;
+                        } else {
+                            console.log("Star Work updated successfully");
+        
+                            const starWorkData = await starWorkResponse.json();
+
+                            const localStorageImages = localStorage.getItem(`starWorkImages-${session.user.id}-${session.user.profileType}`);
+                            updatedProfileImages.starWorkImages = localStorageImages ? JSON.parse(localStorageImages) : [null, null, null];
+        
+                            if (starWorkData.starWorkPath) {
+                                updatedProfileImages.starWorkImages[image] = `/uploads/profile/${starWorkData.starWorkPath}`;
+                                console.log("Image path set to:",  updatedProfileImages.starWorkImages[image]);
+                            }
+                            localStorage.setItem(
+                                `starWorkImages-${session.user.id}-${session.user.profileType}`, 
+                                JSON.stringify(updatedProfileImages.starWorkImages)
+                            );
+                        }
                     }
                 }
             }
@@ -306,8 +465,13 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
             } else {
                 const updatedData = await response.json();
 
-                if (updatedProfilePicture) {
-                    updatedData.profilePicture = updatedProfilePicture;
+                if (updatedProfileImages) {
+                    const updatedDataWithImages = {
+                        ... updatedData,
+                        profilePicture: updatedProfileImages.profilePicture,
+                        bannerImage: updatedProfileImages.bannerImage,
+                        starWorkImages: updatedProfileImages.starWorkImages
+                    }
                 }
 
                 setProfileData(updatedData);
@@ -317,7 +481,9 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
             if (isSuccess) {
                 setUpdatedProfileData(prev => ({
                     ...prev,
-                    profilePicture: null
+                    profilePicture: null,
+                    bannerImage: null, 
+                    starWorkImages: [null, null, null]
                 }));
                 setStatus("idle");
                 
@@ -366,23 +532,57 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
 
     return (
         <div className="w-full">
-            <div className="w-full h-52 bg-blue-500 relative">
+            <div className="w-full h-52 relative">
+                <BannerImage
+                    userId={isOwnProfile ? session?.user?.id : userData?.userId} 
+                    profileType={isOwnProfile ? session?.user?.profileType : userData?.profileType} 
+                    isEditing={isEditing} 
+                    imageUpdate={handleProfileImagesUpdate}
+                    // imageUpdate={(file, base64) => handleProfileImagesUpdate(file, base64, 'banner')}
+                    isOwnProfile={isOwnProfile}
+                />
             <div className="absolute -bottom-40 left-8 flex flex-col items-center gap-4 w-52"> 
                     <ProfilePicture 
                         userId={isOwnProfile ? session?.user?.id : userData?.userId} 
                         profileType={isOwnProfile ? session?.user?.profileType : userData?.profileType} 
                         isEditing={isEditing} 
-                        imageUpdate={handleProfilePictureUpdate}
+                        imageUpdate={handleProfileImagesUpdate}
                         isOwnProfile={isOwnProfile}
                     />
                     {isOwnProfile ? (
-                        <button 
-                            className={`h-10 rounded-full p-2 w-[150px] border-2 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(152,_198,_206,_0.5)] ${isEditing ? "text-red-600 border-red-600 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]" : "text-black border-secondary"}`} 
-                            onClick={toggleEditMode}
-                            disabled={isSaving}
-                        >
-                            {isEditing ? "Cancel" : "Edit Profile"}
-                        </button>
+                        isEditing ? (
+                            <div className="flex space-x-2">
+                                <button 
+                                className={`h-10 rounded-full p-2 w-[100px] border-2 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(152,_198,_206,_0.5)] ${isEditing ? "text-red-600 border-red-600 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]" : "text-black border-secondary"}`} 
+                                onClick={toggleEditMode}
+                                disabled={isSaving}
+                                >
+                                    Cancel
+                                    {/* {isEditing ? "Cancel" : "Edit Profile"} */}
+                                </button>
+                                <button 
+                                className="h-10 rounded-full p-2  w-[100px] bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]"
+                                onClick={saveUpdatedProfileData}
+                                disabled={isSaving}
+                                >
+                                    {isSaving ? "..." : "Save"}
+                                </button>
+                            </div>
+                        ) : (
+                            <button 
+                                className="h-10 rounded-full p-2 w-[150px] border-2 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(152,_198,_206,_0.5)] text-black border-secondary" 
+                                onClick={toggleEditMode}
+                            >
+                                Edit Profile
+                            </button>
+                        )
+                        // <button 
+                        //     className={`h-10 rounded-full p-2 w-[150px] border-2 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(152,_198,_206,_0.5)] ${isEditing ? "text-red-600 border-red-600 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]" : "text-black border-secondary"}`} 
+                        //     onClick={toggleEditMode}
+                        //     disabled={isSaving}
+                        // >
+                        //     {isEditing ? "Cancel" : "Edit Profile"}
+                        // </button>
                     ) : (
                         <button 
                             className={`h-10 rounded-full p-2 w-[150px] border-2 ${isFollowing ? "text-white bg-secondary border-secondary" : "text-black border-secondary"}`} 
@@ -406,7 +606,7 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                                     value={updatedProfileData.creativeSlogan || ""} 
                                     onChange={handleProfileDataChange} 
                                     placeholder="Write your creative slogan here..."
-                                    className="p-2 border rounded-full text-xl"
+                                    className="p-2 mb-2 border rounded-lg text-xl"
                                     style={{
                                         width: `${(updatedProfileData.creativeSlogan || "").length * 10}px`,
                                         minWidth: "400px",
@@ -419,20 +619,20 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                                     value={updatedProfileData.bio || ""} 
                                     onChange={handleProfileDataChange} 
                                     placeholder="Describe your creative persona" 
-                                    className="p-2 border rounded-full overflow-hidden"
+                                    className="p-2 border rounded-lg overflow-hidden"
                                     style={{
                                         width: `${(updatedProfileData.bio || "").length * 10}px`,
                                         minWidth: "400px",
                                         maxWidth: "100%"
                                     }}
                                 />
-                                <button 
+                                {/* <button 
                                     className="mt-4 rounded-full p-2 w-16 bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]"
                                     onClick={saveUpdatedProfileData}
                                     disabled={isSaving}
                                 >
                                     {isSaving ? "..." : "Save"}
-                                </button>
+                                </button> */}
                             </>
                         ) : (
                             <>
@@ -444,276 +644,14 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                     </div>
                 </div>
             </div>
-            <StarWork />
+            <StarWork 
+               userId={isOwnProfile ? session?.user?.id : userData?.userId} 
+               profileType={isOwnProfile ? session?.user?.profileType : userData?.profileType} 
+               isEditing={isEditing} 
+               imageUpdate={handleProfileImagesUpdate}
+               isOwnProfile={isOwnProfile}/>
         </div>
     );
 };
 
 export default ProfileCard;
-
-// "use client";
-
-// import { useState, useEffect } from "react";
-// import { useSession } from "next-auth/react";
-// import ProfilePicture from "./profile-picture";
-// import PersonalTags from "./personal-tags";
-// import StarWork from "./star-work";
-
-// const ProfileCard = ({ userData, isOwnProfile = true }) => {
-//     const { data: session, status: sessionStatus } = useSession();
-//     const [profileData, setProfileData] = useState(null);
-//     const [isFollowing, setIsFollowing] = useState(false);
-//     const [updatedProfileData, setUpdatedProfileData] = useState({
-//         creativeSlogan: "", 
-//         bio: "", 
-//         profilePicture: null
-//     });
-    
-//     const [status, setStatus] = useState("idle");
-
-//     const getApiUrl = () => {
-//         return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-//     };
-
-//     useEffect(() => {
-//         // Enhanced debugging for userData
-//         if (!isOwnProfile && userData) {
-//             console.log("=============== PROFILE CARD ===============");
-//             console.log("Viewing OTHER USER profile with userData:", userData);
-//             console.log("userData.profilePicture:", userData.profilePicture);
-//             console.log("===========================================");
-            
-//             setProfileData(userData);
-//             setUpdatedProfileData({
-//                 creativeSlogan: userData.creativeSlogan || "",
-//                 bio: userData.bio || "",
-//                 profilePicture: userData.profilePicture || null
-//             });
-
-//             if (session?.user?.id) {
-//                 checkFollowExists();
-//             }
-//         } else if (userData) {
-//             console.log("Viewing OWN profile with userData:", userData);
-//             setProfileData(userData);
-//             setUpdatedProfileData({
-//                 creativeSlogan: userData.creativeSlogan || "",
-//                 bio: userData.bio || "",
-//                 profilePicture: userData.profilePicture || null
-//             });
-//         } else if (session?.user?.id && session?.user?.profileType) {
-//             fetchProfileContent();
-//         }
-//     }, [session, userData, isOwnProfile]);
-
-//     const fetchProfileContent = async () => {
-//         if (!session?.user?.id || !session?.user?.profileType) return;
-
-//         try {
-//             const userId = session.user.id;
-//             const profileType = session.user.profileType;
-
-//             const response = await fetch(`${getApiUrl()}/api/profiles/get-profile-content?id=${userId}&profileType=${profileType}`, {
-//                 method: "GET",
-//                 headers: { 
-//                     "Content-Type": "application/json",
-//                     "Authorization": `Bearer ${session.accessToken}`
-//                 }
-//             });
-    
-//             if (!response.ok) {
-//                 console.log("Failed to retrieve data");
-//                 return;
-//             }
-
-//             const profileData = await response.json();
-//             console.log("Fetched own profile data:", profileData);
-
-//             setProfileData(profileData);
-//             setUpdatedProfileData({
-//                 creativeSlogan: profileData.creativeSlogan || "",
-//                 bio: profileData.bio || "",
-//                 profilePicture: null
-//             });
-
-//         } catch (error) {
-//             console.log("Error retrieving profile type data", error);
-//         } 
-//     };
-
-//     // Rest of the functions remain the same...
-//     const checkFollowExists = async () => {
-//         // Implementation remains the same
-//     };
-
-//     const handleFollowingClick = async () => {
-//         // Implementation remains the same
-//     };
-
-//     const handleProfileDataChange = (event) => {
-//         // Implementation remains the same
-//     };
-
-//     const handleProfilePictureUpdate = (imageFile, base64Image) => {
-//         if (!isOwnProfile || !imageFile) return;
-
-//         // Store the file object in state for later upload
-//         setUpdatedProfileData(prev => ({
-//             ...prev,
-//             profilePicture: imageFile
-//         }));
-        
-//         // Store in localStorage for immediate display in the ProfilePicture component
-//         localStorage.setItem(
-//             `profilePicture-${session?.user?.id}-${session?.user?.profileType}`, 
-//             base64Image
-//         );
-//     };
-
-//     const saveUpdatedProfileData = async () => {
-//         // Implementation remains the same
-//     };
-
-//     const toggleEditMode = () => {
-//         // Implementation remains the same
-//     };
-
-//     if (sessionStatus === "loading") {
-//         return <p className="text-center">Your Adventure Awaits...</p>;
-//     }
-
-//     // Determine which user data to use
-//     const user = isOwnProfile ? session?.user : userData;
-//     const isSessionUserProfile = user?.profileType === 'personal';
-
-//     const displayProfileTypeName = isSessionUserProfile 
-//         ? user?.username 
-//         : (user?.fullname || "").trim();
-
-//     const isEditing = status === "editing";
-//     const isSaving = status === "saving";
-//     const isUpdatingFollow = status === "following";
-
-//     // CRITICAL: Determine the correct profile picture path with enhanced debugging
-//     const profilePicturePath = isOwnProfile ? profileData?.profilePicture : userData?.profilePicture;
-    
-//     console.log("Profile picture debug info:", {
-//         isOwnProfile,
-//         userId: user?.id,
-//         profileType: user?.profileType,
-//         profileDataPicture: profileData?.profilePicture,
-//         userDataPicture: userData?.profilePicture,
-//         selectedPicturePath: profilePicturePath
-//     });
-
-//     // Enhanced URL construction with better check for valid paths
-//     let fullProfilePicturePath = null;
-    
-//     if (profilePicturePath) {
-//         // If it's already a data URL or complete URL, use it as is
-//         if (profilePicturePath.startsWith('data:') || profilePicturePath.includes('://')) {
-//             fullProfilePicturePath = profilePicturePath;
-//         } 
-//         // If it's a relative path, append the API URL
-//         else {
-//             const apiUrl = getApiUrl();
-//             fullProfilePicturePath = `${apiUrl}${profilePicturePath.startsWith('/') ? '' : '/'}${profilePicturePath}`;
-//         }
-//     }
-    
-//     console.log("Final profile picture path:", fullProfilePicturePath);
-
-//     return (
-//         <div className="w-full">
-//             <div className="w-full h-52 bg-blue-500 relative">
-//             <div className="absolute -bottom-40 left-8 flex flex-col items-center gap-4 w-52"> 
-//                     {/* Debug display of raw image for other user profiles */}
-//                     {!isOwnProfile && userData?.profilePicture && (
-//                         <div className="absolute top-0 right-0 text-xs bg-yellow-100 p-1 z-10">
-//                             Raw user image found
-//                         </div>
-//                     )}
-                    
-//                     <ProfilePicture 
-//                         userId={user?.id || '0'} 
-//                         profileType={user?.profileType || 'default'} 
-//                         isEditing={isEditing} 
-//                         imageUpdate={handleProfilePictureUpdate}
-//                         isOwnProfile={isOwnProfile}
-//                         externalProfilePicture={!isOwnProfile ? fullProfilePicturePath : null}
-//                     />
-//                     {isOwnProfile ? (
-//                         <button 
-//                             className={`h-10 rounded-full p-2 w-[150px] border-2 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(152,_198,_206,_0.5)] ${isEditing ? "text-red-600 border-red-600 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]" : "text-black border-secondary"}`} 
-//                             onClick={toggleEditMode}
-//                             disabled={isSaving}
-//                         >
-//                             {isEditing ? "Cancel" : "Edit Profile"}
-//                         </button>
-//                     ) : (
-//                         <button 
-//                             className={`h-10 rounded-full p-2 w-[150px] border-2 ${isFollowing ? "text-white bg-secondary border-secondary" : "text-black border-secondary"}`} 
-//                             onClick={handleFollowingClick}
-//                             disabled={isUpdatingFollow}
-//                         >
-//                             {isUpdatingFollow ? "..." : (isFollowing ? "Following" : "Follow")}
-//                         </button>
-//                     )}
-//                 </div>
-//             </div>
-//             <div className="pl-64 pr-8 ">
-//                 <div className="max-w-full">
-//                     <div className="flex flex-col mt-2">
-//                         <span className="text-4xl font-bold">{displayProfileTypeName}</span>
-//                         {isEditing && isOwnProfile ? (
-//                             <>
-//                                 <input 
-//                                     type="text" 
-//                                     name="creativeSlogan"
-//                                     value={updatedProfileData.creativeSlogan || ""} 
-//                                     onChange={handleProfileDataChange} 
-//                                     placeholder="Write your creative slogan here..."
-//                                     className="p-2 border rounded-full text-xl"
-//                                     style={{
-//                                         width: `${(updatedProfileData.creativeSlogan || "").length * 10}px`,
-//                                         minWidth: "400px",
-//                                         maxWidth: "100%"
-//                                     }}
-//                                 />
-//                                 <input 
-//                                     type="text" 
-//                                     name="bio" 
-//                                     value={updatedProfileData.bio || ""} 
-//                                     onChange={handleProfileDataChange} 
-//                                     placeholder="Describe your creative persona" 
-//                                     className="p-2 border rounded-full overflow-hidden"
-//                                     style={{
-//                                         width: `${(updatedProfileData.bio || "").length * 10}px`,
-//                                         minWidth: "400px",
-//                                         maxWidth: "100%"
-//                                     }}
-//                                 />
-//                                 <button 
-//                                     className="mt-4 rounded-full p-2 w-16 bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]"
-//                                     onClick={saveUpdatedProfileData}
-//                                     disabled={isSaving}
-//                                 >
-//                                     {isSaving ? "..." : "Save"}
-//                                 </button>
-//                             </>
-//                         ) : (
-//                             <>
-//                                 <span className="text-xl font-bold pb-4">{isOwnProfile ? profileData?.creativeSlogan : userData?.creativeSlogan || "My creative nature can't be defined!"}</span>
-//                                 <PersonalTags/>
-//                                 <span className="text-base max-w-5xl py-2">{isOwnProfile ? profileData?.bio : userData?.bio || "Thinking of something creative to say..."}</span>
-//                             </>
-//                         )}
-//                     </div>
-//                 </div>
-//             </div>
-//             <StarWork />
-//         </div>
-//     );
-// };
-
-// export default ProfileCard;

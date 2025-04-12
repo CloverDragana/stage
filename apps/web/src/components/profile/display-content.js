@@ -3,6 +3,7 @@
 import { useState } from "react";
 import StarWork from "@/components/profile/star-work";
 import NetworkList from "./display-network";
+import DisplayPost from "../posting/display-post";
 
 function ContentDisplay({ userData }) {
 
@@ -20,7 +21,7 @@ function ContentDisplay({ userData }) {
     const changeContent = () => {
         switch(activeFilter){
             case "Profile":
-                return null;
+                return <DisplayPost userData={userData} />;
             case "Collections":
                 return null;
             case "Interactions":

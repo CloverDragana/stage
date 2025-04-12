@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Search from "./searchbar";
-import ConfirmationPopUp from "../popup-actions/popup-structure";
 import CreatePost from "../posting/create-post";
-import FileType from "../file-upload/file-types";
 
 function Topbar() {
 

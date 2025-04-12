@@ -6,14 +6,15 @@ import { useRouter } from "next/navigation";
 import UserProfileDisplay from "../profile/user-profile-display";
 
 const Search = () => {
-
+    const {data: session } = useSession();
+    const searchRef = useRef(null);
+    const router = useRouter();
+    
     const [ searchQuery, setSearchQuery ] = useState("");
     const [ searchResult, setSearchResult ] = useState([]);
     const [ searchingUsers, setSearchingUsers ] = useState(false);
     const [ showSearchResults, setShowSearchResults]= useState(false);
-    const searchRef = useRef(null);
-    const router = useRouter();
-    const {data: session } = useSession();
+   
    
     const getApiUrl = () => {
         return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -89,6 +90,7 @@ const Search = () => {
     const handleClickedResult = (user) => {
         // console.log("Clicked user:", userId, profileType);
         router.push(`/profile/${user.userId}?profileType=${user.profileType}`);
+        router.refresh();
         setShowSearchResults(false);
         setSearchQuery("");
     };
@@ -113,12 +115,15 @@ const Search = () => {
                             user = {user}
                             className="p-3 hover:bg-gray-100 cursor-pointer flex items-center"
                             onClick={handleClickedResult}
+                            isOnPost={false}
+                            accessToken={session.accessToken}
                         />
                      ))}
                 </div>
             )}
             {showSearchResults && searchQuery.trim().length >= 2 && searchResult.length === 0 && !searchingUsers && (
-                <div className="fixed top-14 left-0 right-0 bg-white rounded-lg shadow-lg z-[1000] p-4 text-center">
+                // <div className="absolute top-14 left-0 right-0 bg-white rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                <div className="absolute top-[60px] left-0 right-0 bg-white rounded-lg shadow-lg z-50 p-4 text-center">
                     No users found matching "{searchQuery}"
                 </div>
             )}

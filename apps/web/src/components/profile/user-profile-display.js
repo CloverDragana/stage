@@ -2,18 +2,38 @@
 
 import { useState, useEffect } from "react";
 
-const UserProfileDisplay = ({ user, onClick }) => {
+const UserProfileDisplay = ({ user, onClick, isOnPost, accessToken }) => {
 
     const [profilePicture, setProfilePicture] = useState(null);
-    // const [initialLoad, setInitialLoad] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
+
+    const getApiUrl = () => {
+        return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    };
 
     useEffect(() => {
 
         setIsLoading(true);
         
-        if (!user?.userId || !user?.profileType) {
-            console.log("Missing userId or profileType, using default image");
+        console.log("UserProfileDisplay received user:", user);
+
+        // if (!user) {
+        //     setProfilePicture("/userIcon.jpeg");
+        //     setIsLoading(false);
+        //     return;
+        // }
+
+        // if (!user?.userId || !user?.profileType) {
+        //     console.log("Missing userId or profileType, using default image");
+        //     setProfilePicture("/userIcon.jpeg");
+        //     setIsLoading(false);
+        //     return;
+        // }
+
+        const userId = user?.userId || user?.id;
+        const profileType = user?.profileType;
+
+        if (!userId || !profileType) {
             setProfilePicture("/userIcon.jpeg");
             setIsLoading(false);
             return;
@@ -21,6 +41,7 @@ const UserProfileDisplay = ({ user, onClick }) => {
 
         const fetchProfilePicture = async () => {
             try {
+                console.log("profile picture", user.profilePicture);
                 if (user.profilePicture) {
                     const imagePath = user.profilePicture.startsWith('/uploads') 
                         ? user.profilePicture 
@@ -30,14 +51,19 @@ const UserProfileDisplay = ({ user, onClick }) => {
                     return;
                 }
 
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
                 const response = await fetch(
-                    `${apiUrl}/api/profiles/get-profile-content?id=${user.userId}&profileType=${user.profileType}`,
-                    { method: "GET", headers: { "Content-Type": "application/json" } }
-                );
-                
+                    `${getApiUrl()}/api/profiles/get-profile-content?id=${userId}&profileType=${profileType}`,
+                    { 
+                        method: "GET", 
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${accessToken}` 
+                        } 
+                    });
+                console.log("response", response);
                 if (response.ok) {
                     const data = await response.json();
+                    console.log("data", data);
                     if (data.profilePicture) {
                         const imagePath = `/uploads/profile/${data.profilePicture}`;
                         setProfilePicture(imagePath);
@@ -50,7 +76,6 @@ const UserProfileDisplay = ({ user, onClick }) => {
             } catch (error) {
                 console.error("Error fetching profile picture:", error);
                 setProfilePicture("/userIcon.jpeg");
-                // setInitialLoad(false);
             } finally {
                 setIsLoading(false);
             }
@@ -65,23 +90,25 @@ const UserProfileDisplay = ({ user, onClick }) => {
         } 
     };
 
+    const displayName = user?.profileType === 'personal' ? user?.username : user?.fullname;
+
     return (
         <div 
-            className="p-3 hover:bg-gray-100 cursor-pointer flex items-center"
+            className={`p-3 flex items-center ${isOnPost !== true ? 'hover:bg-gray-100 cursor-pointer' : ' cursor-default'}` }
             onClick={handleClick}
             >
             <div className="w-10 h-10 rounded-full bg-gray-300 overflow-hidden flex-shrink-0 mr-3">
             {!isLoading && profilePicture && profilePicture !== "/userIcon.jpeg" ? (
                     <img 
                         src={profilePicture} 
-                        alt={user.displayName || ""} 
+                        alt={displayName} 
                         className="w-full h-full object-cover"
                         onError={() => setProfilePicture("/userIcon.jpeg")}
                     />
                 ) : (
                      <img 
                      src="/userIcon.jpeg" 
-                     alt={user.displayName || ""} 
+                     alt={displayName} 
                      className="w-full h-full object-cover"
                      onError={() => setProfilePicture("/userIcon.jpeg")}
                  />
@@ -93,7 +120,7 @@ const UserProfileDisplay = ({ user, onClick }) => {
                 ) : (
                 <div className="font-bold">{user.fullname}</div>
                 )}
-                {user.bio && (
+                {isOnPost !== true && user.bio && (
                 <div className="text-sm text-gray-600 truncate max-w-xs">{user.bio}</div>
                 )}
             </div>

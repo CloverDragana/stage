@@ -10,13 +10,12 @@ function ProfilePicture({ userId, profileType, isEditing = false, imageUpdate, i
     const [previewProfilePicture, setPreviewProfilePicture] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
+    const getApiUrl = () => {
+        return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    };
 
-        console.log("ProfilePicture rendering for:", {
-            userId,
-            profileType,
-            isOwnProfile
-        });
+    useEffect(() => {
+        
         if (!userId || !profileType || userId === '0' || profileType === 'default') {
             console.log("Missing or invalid userId or profileType, using default image");
             setProfilePicture("/userIcon.jpeg");
@@ -26,7 +25,6 @@ function ProfilePicture({ userId, profileType, isEditing = false, imageUpdate, i
 
         const fetchProfilePicture = async () => {
             try {
-                console.log("id profile pic: ", userId)
                 if (isOwnProfile && session?.user?.id) {
                     
                     const localStoragePP = localStorage.getItem(`profilePicture-${session?.user?.id}-${session?.user?.profileType}`);
@@ -34,17 +32,16 @@ function ProfilePicture({ userId, profileType, isEditing = false, imageUpdate, i
                         setProfilePicture(localStoragePP);
                     }
                 }
-
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
                 
                 const response = await fetch(
-                    `${apiUrl}/api/profiles/get-profile-picture?userId=${userId}&profileType=${profileType}`, 
+                    `${getApiUrl()}/api/profiles/get-profile-picture?userId=${userId}&profileType=${profileType}`, 
                     { 
                         method: "GET", 
                         headers: { 
                             "Content-Type": "application/json",
-                            "Authorization": `Bearer ${session.accessToken}` } }
-                );
+                            "Authorization": `Bearer ${session.accessToken}` 
+                        } 
+                    });
                 
                 if (response.ok) {
                     const data = await response.json();
@@ -63,7 +60,8 @@ function ProfilePicture({ userId, profileType, isEditing = false, imageUpdate, i
                 } else {
                     setProfilePicture("/userIcon.jpeg");
                 }
-            } catch (err) {
+            } catch (error) {
+                console.error("Error fetching profile picture:", error);
                 setProfilePicture("/userIcon.jpeg");
             } finally {
                 setIsLoading(false);
@@ -89,7 +87,7 @@ function ProfilePicture({ userId, profileType, isEditing = false, imageUpdate, i
                 setPreviewProfilePicture(base64Image);
 
                 if(imageUpdate){
-                    imageUpdate(file, base64Image);
+                    imageUpdate(file, base64Image, 'profile');
                 }
             };
 
@@ -107,17 +105,32 @@ function ProfilePicture({ userId, profileType, isEditing = false, imageUpdate, i
 
     const displayPreview = previewProfilePicture || profilePicture || "/userIcon.jpeg";
 
+    const getImageUrl = (filename) => {
+        if (!filename) return null;
+        
+        // Check if it's already a complete URL or data URL
+        if (filename.startsWith('data:') || filename.startsWith('http')) {
+          return filename;
+        }
+        if (filename.startsWith('/uploads/')) {
+            return filename; // Next.js will serve from /public
+          }
+
+        // If it's just a filename, construct the full URL
+        if (filename.includes('/uploads/profile/')) {
+          return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${filename}`;
+        } else {
+          return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/profile/${filename}`;
+        }
+      };
+
     return(
         <div className="relative rounded-full p-3 bg-white overflow-hidden" onClick={handleImageChangeClick}>
             <img 
-                src={displayPreview} 
+                // src={previewProfilePicture || (profilePicture ? getImageUrl(profilePicture) : "/userIcon.jpeg")}
+                src={displayPreview}
                 alt="profile" 
                 className="rounded-full w-48 h-48 object-cover"
-                onError={(e) => {
-                    console.log("Error loading image, falling back to default");
-                    e.target.src = "/userIcon.jpeg";
-                    setProfilePicture("/userIcon.jpeg");
-                }}
             />
             
             {isEditing && (

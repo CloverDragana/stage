@@ -1,53 +1,90 @@
 
 "use client";
 
-import { useState } from "react"
-import { useSession } from "next-auth/react"
-import FileType from "../file-upload/file-types";
+import { useState, useRef, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import UserProfileDisplay from "../profile/user-profile-display";
 
 // https://www.youtube.com/watch?v=pWd6Enu2Pjs
 // https://www.geeksforgeeks.org/file-uploading-in-react-js/
 
 function CreatePost({ onClose }){
     const { data: session } = useSession();
+    const inputFileRef = useRef(null);
     const [ content, setContent ] = useState("");
     const [ file, setFile ] = useState(null);
-    const [fileUrl, setFileUrl] = useState(null);
     const [ fileUploadPreview, setFileUploadPreview ] = useState(null);
     const [ statusMessage, setStatusMessage ] = useState("");
     const [ loading, setLoading ] = useState(false);
-
-    const disableButton = content.length < 1 || loading;
+    const [userData, setUserData] = useState(null);
 
     const getApiUrl = () => {
         return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     };
 
-    const handleFileUpload = (event) => {
+    useEffect(() => {
+        if (session?.user?.id){
+            const fetchUserData = async () => {
+                try {
+
+                    setUserData(session.user);
+
+                    const response = await fetch(
+                        `${getApiUrl()}/api/profiles/get-profile-content?id=${session.user.id}&profileType=${session.user.profileType}`,
+                    {
+                        method: "GET", 
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${session.accessToken}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // setUserData(data);
+                        console.log("User data fetched successfully:", data);
+
+                        const updateData = {
+                            ...session.user,
+                            ...data
+                        }; 
+
+                        setUserData(updateData);
+                        console.log("User data:", userData);
+                    } else {
+                        setUserData(session?.user);
+                    }
+
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                    setUserData(session?.user);
+                }
+            };
+
+            fetchUserData();
+        }
+    }, [session]);
+
+    const handleImagePostUpload = () => {
+        if (inputFileRef.current) {
+            inputFileRef.current.click();
+        } 
+    };
+
+    const handleImageUpload = (event) => {
         if(event.target.files && event.target.files[0]){
             const selectedFile = event.target.files[0];
+            const fileReader = new FileReader();
+
             setFile(selectedFile);
 
-            if (fileUrl){
-                URL.revokeObjectURL(fileUrl);
-            }
-
-            if (selectedFile){
-                const url = URL.createObjectURL(selectedFile);
-                setFileUrl(url);
+            fileReader.onload = () => {
+                const base64Image = fileReader.result;
+                setFileUploadPreview(base64Image);
                 setStatusMessage("");
+            };
 
-                const fileReader = new FileReader();
-                fileReader.onload = (event) => {
-                    setFileUploadPreview(event.target.result);
-                };
-
-                fileReader.readAsDataURL(selectedFile);
-            } else {
-                // setStatusMessage("Please add a valid image file");
-                setFileUrl(null);
-                setFileUploadPreview(null);
-            }
+            fileReader.readAsDataURL(selectedFile);
         }
     }
 
@@ -55,7 +92,7 @@ function CreatePost({ onClose }){
         error.preventDefault();
         
         if (!content.trim() && !file) {
-            setStatusMessage("Please enter a message or file");
+            setStatusMessage("Please enter a message or upload a file");
             return;
         }
 
@@ -65,14 +102,17 @@ function CreatePost({ onClose }){
         try{
             const formData = new FormData();
 
-            formData.append("content", content);
-
-            if (file){
-                formData.append("file", file);
+            if (!session?.user?.id || !session?.user?.profileType) {
+                throw new Error("Missing required user information");
             }
 
             formData.append("userId", session?.user?.id);
             formData.append("profileType", session?.user?.profileType);
+            formData.append("postText", content);
+
+            if (file){
+                formData.append("file", file);
+            }
 
             const response = await fetch(`${getApiUrl()}/api/posts/create-post`,{
                 method: "POST",
@@ -84,8 +124,10 @@ function CreatePost({ onClose }){
 
             if (!response.ok){
                 const errorData = await response.json();
+                console.error("Error response data:", errorData);
                 throw new Error(errorData.error || "Failed to create post");
             }
+
             setStatusMessage("Post created successfully");
             setTimeout(() => {
                 onClose();
@@ -99,41 +141,47 @@ function CreatePost({ onClose }){
         }
     }
 
+    const disableButton = content.length < 1 || loading;
+
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-[10000] w-full h-full">
             <div className="bg-white p-4 rounded-lg shadow-lg relative z-[10000] w-2/5 max-h-[80vh] overflow-y-auto">
                 <form className="flex flex-col" onSubmit={handleSubmit}>
                     {statusMessage && (
-                        <p className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 mb-4 rounded relative">
+                        <p className="bg-primary/50 border border-secondary/85 text-secondary px-4 py-3 mb-4 rounded relative">
                             {statusMessage}
                         </p>
                     )}
 
-                    <div className="flex gap-4 items-start pb-4 w-full">
+                    <div className="flex gap-4 items-start w-full">
                         <div className="flex flex-col gap-2 w-full">
-                            <div>{session?.user?.name}</div>
+                            <div>
+                                <UserProfileDisplay
+                                    user = {userData || session?.user}
+                                    isOnPost={true}
+                                    accessToken={session?.accessToken}
+                                />
+                            </div>
 
                             <label className="w-full">
                                 <input
                                     className="bg-transparent flex-1 border-none outline-none w-full"
                                     type="text"
-                                    placeholder="Post a thing..."
+                                    placeholder="What's on your mind today..."
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
                                 />
                             </label>
 
                             {/* Preview File */}
-                            {fileUrl && file && (
+                            {fileUploadPreview && (
                                 <div className="w-auto p-2 mt-2 flex justify-center border-dashed border-2 border-gray-300">
-                            
-                                    {file.type.startsWith("image/") ? (
-                                        <div className="relative overflow-hidden group">
-                                            <img src={fileUrl} alt={file.name} className="max-w-full h-auto shadow-lg"/>
+                                    <div className="relative overflow-hidden group">
+                                         <img src={fileUploadPreview} alt="post image preview" className="max-w-full h-auto shadow-lg"/>
                                             {!loading && (
                                             <button 
                                                 onClick={() => {
-                                                    setFileUrl(null);
+                                                    setFileUploadPreview(null);
                                                     setFile(null);
                                                 }}
                                                 className="absolute inset-0 flex items-center justify-center bg-[rgb(0,0,0)] opacity-0 group-hover:opacity-80 transition-opacity duration-300 cursor-pointer"
@@ -145,50 +193,36 @@ function CreatePost({ onClose }){
                                             </button>
                                         )}
                                         </div>
-                                    ) : (
-                                        <div className="relative overflow-hidden group">
-                                            <video src={fileUrl} alt={file.name} className="max-w-full h-auto shadow-lg"/>
-                                            {!loading && (
-                                            <button 
-                                                onClick={() => {
-                                                    setFileUrl(null);
-                                                    setFile(null);
-                                                }}
-                                                className="absolute inset-0 flex items-center justify-center bg-[rgb(0,0,0)] opacity-0 group-hover:opacity-80 transition-opacity duration-300 cursor-pointer"
-                                                type="button"
-                                            >
-                                                <span className="text-white font-bold text-xl">
-                                                    Remove
-                                                </span>
-                                            </button>
-                                        )}
-                                        </div>
-                                    )}
                                 </div>
                             )}
-                            <label className="flex">
-                                <div className="py-2 flex flex-row items-center justify-center px-4 rounded-lg w-auto">
-                                    <FileType onFileSelected={handleFileUpload}/>
-                                </div>
+                            <div className="flex">
+                                <button 
+                                    type="button"
+                                    onClick={handleImagePostUpload} 
+                                    className="py-2 flex flex-row items-center justify-center px-4 rounded-lg w-auto"
+                                >
+                                    {/* <FileType onFileSelected={handleImageUpload}/> */}
+                                    add image
+                                </button>
 
                                 <input
                                     className="bg-transparent flex-1 border-none outline-none hidden"
-                                    name="media"
+                                    ref={inputFileRef}
                                     type="file"
                                     accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
-                                    onChange={handleFileUpload}
+                                    onChange={handleImageUpload}
                                 />
-                            </label>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-between items-center mt-5">
+                    <div className="flex justify-between items-center mt-2">
                         <div className="text-neutral-500">Characters: {content.length}</div>
                         <div className="flex flex-row justify-center gap-6">
                             <button 
                                 type="submit" 
                                 disabled={disableButton}
-                                className={`rounded-full p-2 w-auto bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)] ${disableButton ? "opacity-50 cursor-not-allowed" : ""}`}
+                                className={`rounded-full p-2 w-auto bg-white border-2 border-green-600 transition-all duration-300 ${disableButton ? "opacity-50 cursor-not-allowed" : "hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]"}`}
                             >
                                 {loading ? "Creating..." : "Post"}
                             </button>

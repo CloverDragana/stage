@@ -1,19 +1,22 @@
 "use client";
 
-import CreatePost from "./create-post";
+import UserProfileDisplay from "../profile/user-profile-display";
+import PostContent from "./post-content";
 
-function DisplayPost(){
+function DisplayPost({userData, onProfile, isOwnProfile}) {
     return(
-        <div className="bg-white w-auto mx-6 my-3 items-center rounded-md shadow-xl" >
-            <div className="flex flex-row gap-8 px-4">
-                <p className="text-xl">Username</p>
-                <p>date post</p>
-            </div>
-            <CreatePost/>
-            <div className="flex flex-row justify-between px-10">
-                <p>Like</p>
-                <p>Comment</p>
-                <p>Share</p>
+        <div className="mt-10 my-10">
+            <div className="bg-white w-auto mx-6 my-10 items-center rounded-md shadow-[0px_0px_6px_6px_rgba(0,_0,_0,_0.1)]" >
+                <div className="flex flex-col px-4 py-2">
+                    {/* <UserProfileDisplay user={userData} isOnPost={true}/> */}
+                    <p>date post</p>
+                </div>
+                <PostContent userData={userData} />
+                <div className="flex flex-row justify-between px-10 py-2">
+                    <p>Like</p>
+                    <p>Comment</p>
+                    <p>Share</p>
+                </div>
             </div>
         </div>
     );
