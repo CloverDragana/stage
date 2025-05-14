@@ -105,24 +105,24 @@ function ProfilePicture({ userId, profileType, isEditing = false, imageUpdate, i
 
     const displayPreview = previewProfilePicture || profilePicture || "/userIcon.jpeg";
 
-    const getImageUrl = (filename) => {
-        if (!filename) return null;
+    // const getImageUrl = (filename) => {
+    //     if (!filename) return null;
         
-        // Check if it's already a complete URL or data URL
-        if (filename.startsWith('data:') || filename.startsWith('http')) {
-          return filename;
-        }
-        if (filename.startsWith('/uploads/')) {
-            return filename; // Next.js will serve from /public
-          }
+    //     // Check if it's already a complete URL or data URL
+    //     if (filename.startsWith('data:') || filename.startsWith('http')) {
+    //       return filename;
+    //     }
+    //     if (filename.startsWith('/uploads/')) {
+    //         return filename; // Next.js will serve from /public
+    //       }
 
-        // If it's just a filename, construct the full URL
-        if (filename.includes('/uploads/profile/')) {
-          return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${filename}`;
-        } else {
-          return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/profile/${filename}`;
-        }
-      };
+    //     // If it's just a filename, construct the full URL
+    //     if (filename.includes('/uploads/profile/')) {
+    //       return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${filename}`;
+    //     } else {
+    //       return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/profile/${filename}`;
+    //     }
+    //   };
 
     return(
         <div className="relative rounded-full p-3 bg-white overflow-hidden" onClick={handleImageChangeClick}>

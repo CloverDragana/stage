@@ -1,12 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import { db } from '@stage/database';
-import authRoutes from './routes/auth.js';
+// import authRoutes from './routes/auth.js';
 import usersRoutes from './routes/users.js';
 import profilesRoutes from './routes/profiles.js';
 import searchRoutes from './routes/search.js';
-import connectionsRouter from './routes/connections.js';
-import postRouter from './routes/posts.js';
+import connectionsRoutes from './routes/connections.js';
+import postRoutes from './routes/posts.js';
+import portfolioRoutes from './routes/portfolios.js';
 import { verifyToken } from './middleware/auth.js';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -23,27 +24,28 @@ const imageUploadDir = path.join(webPublicPath, 'uploads/profile');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const testConnection = async () => {
-    try {
-      const client = await db.connect();
-      console.log('Successfully connected to PostgreSQL database');
-      client.release();
-      return true;
-    } catch (error) {
-      console.error('Failed to connect to PostgreSQL database:', error);
-      return false;
-    }
-  };
-  
-  // Run connection test
-  (async () => {
-    await testConnection();
-  })();
 
-  console.log("API server is starting...");
-console.log("Current directory:", __dirname);
-console.log("Web public path:", webPublicPath);
-console.log("Image upload directory:", imageUploadDir);
+// const testConnection = async () => {
+//     try {
+//       const client = await db.connect();
+//       console.log('Successfully connected to PostgreSQL database');
+//       client.release();
+//       return true;
+//     } catch (error) {
+//       console.error('Failed to connect to PostgreSQL database:', error);
+//       return false;
+//     }
+//   };
+  
+//   // Run connection test
+//   (async () => {
+//     await testConnection();
+//   })();
+
+//   console.log("API server is starting...");
+// console.log("Current directory:", __dirname);
+// console.log("Web public path:", webPublicPath);
+// console.log("Image upload directory:", imageUploadDir);
 
 // Check if directories exist
 console.log("Web public path exists:", fs.existsSync(webPublicPath));
@@ -79,13 +81,13 @@ app.use('/uploads', express.static(path.join(webPublicPath, 'uploads')));
 // app.use('/api/profiles', verifyToken);
 
 // Routes
-app.use('/api/auth', authRoutes);
+// app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/profiles', profilesRoutes);
 app.use('/api/search', searchRoutes);
-app.use('/api/connections', connectionsRouter);
-app.use('/api/posts', postRouter);
-
+app.use('/api/connections', connectionsRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/portfolios', portfolioRoutes);
 app.listen(PORT, () => {
   console.log(`API server running on port ${PORT}`);
 });

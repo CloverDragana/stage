@@ -3,14 +3,14 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import ProfilePicture from "./profile-picture";
-import PersonalTags from "./personal-tags";
 import StarWork from "./star-work";
 import BannerImage from "./banner-image";
 
 const ProfileCard = ({ userData, isOwnProfile}) => {
     const { data: session, status: sessionStatus } = useSession();
-    const [profileData, setProfileData] = useState(null);
     const [isFollowing, setIsFollowing] = useState(false);
+    const [status, setStatus] = useState("idle");
+    const [profileData, setProfileData] = useState(null);
     const [updatedProfileData, setUpdatedProfileData] = useState({
         creativeSlogan: "", 
         bio: "", 
@@ -18,8 +18,6 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
         bannerImage: null,
         starWorkImages: [ null, null, null]
     });
-    
-    const [status, setStatus] = useState("idle");
 
     const getApiUrl = () => {
         return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -103,8 +101,9 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
     };
 
     const checkFollowExists = async () => {
-        try {
-            const loggedInProfileId = await fetch(
+        try { 
+            // get profile id of the session user
+            const response = await fetch(
                 `${getApiUrl()}/api/profiles/get-profile-id?userId=${session.user.id}&profileType=${session.user.profileType}`,
                 {
                     method: "GET",
@@ -114,24 +113,20 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                     }
                 }
             );
-
-            if (!loggedInProfileId.ok) {
+            // return function if response not successful
+            if (!response.ok) {
                 console.log("Failed to get profile id");
                 return;
             }
+            // store the session users data from successful response
+            const sessionUserData = await response.json();
 
-            const loggedInProfileData = await loggedInProfileId.json();
-            const followerProfileId = loggedInProfileData?.profileId;
+            const sessionUserProfileId = sessionUserData?.profileId; //extract session users profileid
+            const viewedProfileId = userData?.profileId; //get viewed profile's id
 
-            const followedProfileId = userData?.profileId;
-
-            console.log("Checking follow relationship between:", {
-                followerProfileId,
-                followedProfileId
-            });
-
+            // API request to check if session user follows the viewed profile
             const followCheckResponse = await fetch(
-                `${getApiUrl()}/api/connections/check-follow-exists?followerProfileId=${followerProfileId}&followedProfileId=${followedProfileId}`,
+                `${getApiUrl()}/api/connections/check-follow-exists?followerProfileId=${sessionUserProfileId}&followedProfileId=${viewedProfileId}`,
                 {
                     method: "GET",
                     headers: {
@@ -140,29 +135,27 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                     }
                 }
             );
-
+            // handle successful response
             if (followCheckResponse.ok) {
                 const followCheckData = await followCheckResponse.json();
-                setIsFollowing(followCheckData.isFollowing);
-                console.log("Follow status:", followCheckData.isFollowing);
+                setIsFollowing(followCheckData.isFollowing); // change following state based on API response
             } else {
                 console.log("Failed to check follow status");
-                setIsFollowing(false);
+                setIsFollowing(false); //default to not following on error
             }
-
         } catch (error) {
             console.log("Failed to check if following", error);
-            setIsFollowing(false);
+            setIsFollowing(false); //default to not following on error
         }
     };
 
     const handleFollowingClick = async () => {
-        if (status === "following" || !userData?.profileId) return;
+        if (status === "following" || !userData?.profileId) return; // if follow connnetion exists, quit function
 
-        setStatus("following");
-
+        setStatus("following");  // update status to following
         try {
-            const loggedInProfileId = await fetch(
+            // retrieve session users profile id
+            const response = await fetch(
                 `${getApiUrl()}/api/profiles/get-profile-id?userId=${session.user.id}&profileType=${session.user.profileType}`,
                 {
                     method: "GET",
@@ -173,20 +166,18 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                 }
             );
 
-            if (!loggedInProfileId.ok) {
+            if (!response.ok) {
                 console.log("Failed to get profile id");
                 return;
             }
-
-            const loggedInProfileData = await loggedInProfileId.json();
-            const followerProfileId = loggedInProfileData?.profileId;
-
-            const followedProfileId = userData?.profileId;
-
-            const connectionEndPoint = isFollowing ? "unfollow" : "follow";
-
-            const followResponse = await fetch(
-                `${getApiUrl()}/api/connections/${connectionEndPoint}`,
+            // handle response and extract the profile id
+            const sessionUserData = await response.json();
+            const sessionUserProfileId = sessionUserData?.profileId;
+            const viewedProfileId = userData?.profileId;// retrieve profile id of currently viewed profile
+            
+            const connectionEndPoint = isFollowing ? "unfollow" : "follow";// determine route end point based on following status
+            //  create a new connection in the database
+            const followResponse = await fetch(`${getApiUrl()}/api/connections/${connectionEndPoint}`,
                 {
                     method: "POST",
                     headers: {
@@ -194,19 +185,17 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                         "Authorization": `Bearer ${session.accessToken}`
                     }, 
                     body: JSON.stringify({
-                        followerProfileId: followerProfileId,
-                        followedProfileId: followedProfileId
+                        followerProfileId: sessionUserProfileId,
+                        followedProfileId: viewedProfileId
                     })
                 }
             );
-
+            // update following status from a successful API response
             if (followResponse.ok) {
                 setIsFollowing(!isFollowing);
-                console.log(`Successfully ${connectionEndPoint}ed. New follow state:`, !isFollowing);
             } else {
                 console.log(`Failed to ${connectionEndPoint}`);
             }
-
         } catch (error) {
             console.log("Failed to follow", error);
         } finally {
@@ -313,13 +302,6 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                 formData.append("userId", session.user.id);
                 formData.append("profileType", session.user.profileType);
                 formData.append("file", updatedProfileData.profilePicture);
-                
-                console.log("Uploading profile picture...");
-                console.log("Form data:", Object.fromEntries(formData.entries().map(([key, value]) => {
-                    return [key, key === 'file' ? `File: ${value.name}` : value];
-                })));
-
-                // const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
                 const pictureResponse = await fetch(`${getApiUrl()}/api/profiles/update-profile-picture`, {
                     method: "PUT",
@@ -443,8 +425,7 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                     }
                 }
             }
-        
-            console.log("Updating profile text information...");    
+          
             const response = await fetch(`${getApiUrl()}/api/profiles/update-profile`, {
                 method: "PUT",
                 headers: { 
@@ -472,10 +453,11 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                         bannerImage: updatedProfileImages.bannerImage,
                         starWorkImages: updatedProfileImages.starWorkImages
                     }
+                    setProfileData(updatedDataWithImages);
                 }
 
                 setProfileData(updatedData);
-                console.log("Profile data updated successfully:", updatedData);
+                window.location.reload();
             }
             
             if (isSuccess) {
@@ -520,8 +502,6 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
     const user = profileData || session?.user;
     const isSessionUserProfile = user?.profileType === 'personal';
 
-    console.log("meow",user);
-
     const displayProfileTypeName = isSessionUserProfile 
         ? user?.username 
         : (user?.fullname || "").trim();
@@ -538,7 +518,6 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                     profileType={isOwnProfile ? session?.user?.profileType : userData?.profileType} 
                     isEditing={isEditing} 
                     imageUpdate={handleProfileImagesUpdate}
-                    // imageUpdate={(file, base64) => handleProfileImagesUpdate(file, base64, 'banner')}
                     isOwnProfile={isOwnProfile}
                 />
             <div className="absolute -bottom-40 left-8 flex flex-col items-center gap-4 w-52"> 
@@ -558,7 +537,6 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                                 disabled={isSaving}
                                 >
                                     Cancel
-                                    {/* {isEditing ? "Cancel" : "Edit Profile"} */}
                                 </button>
                                 <button 
                                 className="h-10 rounded-full p-2  w-[100px] bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]"
@@ -576,13 +554,6 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                                 Edit Profile
                             </button>
                         )
-                        // <button 
-                        //     className={`h-10 rounded-full p-2 w-[150px] border-2 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(152,_198,_206,_0.5)] ${isEditing ? "text-red-600 border-red-600 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]" : "text-black border-secondary"}`} 
-                        //     onClick={toggleEditMode}
-                        //     disabled={isSaving}
-                        // >
-                        //     {isEditing ? "Cancel" : "Edit Profile"}
-                        // </button>
                     ) : (
                         <button 
                             className={`h-10 rounded-full p-2 w-[150px] border-2 ${isFollowing ? "text-white bg-secondary border-secondary" : "text-black border-secondary"}`} 
@@ -593,7 +564,7 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                         </button>
                     )}
                 </div>
-            </div>
+            </div> 
             <div className="pl-64 pr-8 ">
                 <div className="max-w-full">
                     <div className="flex flex-col mt-2">
@@ -626,19 +597,11 @@ const ProfileCard = ({ userData, isOwnProfile}) => {
                                         maxWidth: "100%"
                                     }}
                                 />
-                                {/* <button 
-                                    className="mt-4 rounded-full p-2 w-16 bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]"
-                                    onClick={saveUpdatedProfileData}
-                                    disabled={isSaving}
-                                >
-                                    {isSaving ? "..." : "Save"}
-                                </button> */}
                             </>
                         ) : (
                             <>
-                                <span className="text-xl font-bold pb-4">{profileData?.creativeSlogan || "My creative nature can't be defined!"}</span>
-                                <PersonalTags/>
-                                <span className="text-base max-w-5xl py-2">{profileData?.bio || "Thinking of something creative to say..."}</span>
+                                <span className="text-xl font-bold py-4">{profileData?.creativeSlogan || "My creative nature can't be defined!"}</span>
+                                <span className="text-base max-w-5xl py-3">{profileData?.bio || "Thinking of something creative to say..."}</span>
                             </>
                         )}
                     </div>

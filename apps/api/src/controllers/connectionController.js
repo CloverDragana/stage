@@ -19,9 +19,8 @@ export const followProfileType = async (followerProfileId, followedProfileId) =>
     if (!followerProfileId || !followedProfileId) {
       throw new Error("Profile ID's required to check follow status");
     }
-
+    // recheck the existence of a follow to avoid db duplicates
     const alreadyFollowing = await connectionModel.checkFollow(followerProfileId, followedProfileId);
-    
     if (alreadyFollowing) {
         return {
             message: 'Already following this profile',
@@ -86,3 +85,13 @@ export const getFollowing = async (profileId) => {
       users: followingList
     };
 };
+
+// export const deleteFollow = async (userId) => {
+//   const deleted = await userModel.deleteFollow(userId);
+  
+//   if (!deleted) {
+//     throw new Error('Follow not found');
+//   }
+  
+//   return { message: 'Follow deleted successfully!' };
+// };

@@ -25,7 +25,6 @@ export const getProfileIdByUserIdAndType = async (userId, profileType) => {
 };
 
 export const getProfilePictureByUserIdAndType = async (userId, profileType) => {
-  console.log(` getProfilePictureByUserIdAndType Model: Getting profile picture for user ${userId}, profileType=${profileType}`);
   const result = await db.query(
     `SELECT profile_picture
     FROM profiles p
@@ -122,7 +121,6 @@ export const updateBannerImage = async (userId, profileType, bannerImageUrl) => 
 };
 
 export const updateStarWork = async (userId, profileType, starWorkPath, imageIndex) => {
-  console.log(`Updating star work at index ${imageIndex} for user ${userId}, profileType=${profileType} with path ${starWorkPath}`);
 
   const currentStarWorks = await db.query(
     `SELECT star_works 

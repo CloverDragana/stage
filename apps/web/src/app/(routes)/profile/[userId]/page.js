@@ -8,9 +8,7 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Navbar from "@/components/navigation/navbar";
 import Topbar from "@/components/navigation/topbar";
 import ProfileCard from "@/components/profile/profile-card";
-import ContentDisplay from "@/components/profile/display-content";
-// import DisplayPost from "@/components/posting/display-post";
-// import FileType from "@/components/file-upload/file-types";
+import ContentDisplay from "@/components/profile/profile-filter/display-content";
 
 export default function Profile() {
 
@@ -24,6 +22,7 @@ export default function Profile() {
   const userId = params?.userId || session?.user?.id;
   const profileType = searchParams.get('profileType') || session?.user?.profileType || 'personal';
   const isOwnProfile =  !params.userId || (params.userId === session?.user?.id.toString()) ;
+  // console.log("isOwnProfile", isOwnProfile);
 
   const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -83,9 +82,9 @@ export default function Profile() {
       <Navbar />
       <Topbar />
       {/* <Navbar /> */}
-      <div className="ml-[194px] mt-[78px]">
+      <div className="ml-[202px] mt-[78px]">
         <ProfileCard userData={profileData} isOwnProfile={isOwnProfile}/>
-        <ContentDisplay userData={profileData} />
+        <ContentDisplay userData={profileData} isOwnProfile={isOwnProfile}/>
       </div>
     </div>
   );

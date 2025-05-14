@@ -4,24 +4,28 @@ import { db } from "@stage/database";
 import { comparePassword, hashPassword } from "@stage/auth";
 import jwt from 'jsonwebtoken';
 
-console.log("Auth package loaded:", !!comparePassword);
-
 export const authOptions = {
+    
     session: {
-        strategy: 'jwt',
-        jwt: true,
+        strategy: "jwt", // save session in jwt
+        maxAge: 24 * 60 * 60, // session expiration 24hrs
+        jwt: true, 
+    },
+    jwt:{
+        maxAge: 24 * 60 * 60, //jwt epiration 24hrs
     },
     providers: [
+        // authentication for S.T.A.G.E.'s log in system
         CredentialsProvider({
             name: "Credentials",
-            credentials: {
+            credentials: { // expected login fields
                 username: {},
                 password: {}
             },
+            //authorize provides authentication and authorisation into S.T.A.G.E
+            // using the expected field in the credentials
             async authorize(credentials) {
-
             try{
-            
                 const dbClient = await db.connect();
                 try {
 
@@ -55,7 +59,7 @@ export const authOptions = {
                         dob: user.dob,
                         personal_account: user.personal_account,
                         professional_account: user.professional_account,
-                        profileType: user.profile_type // Use the stored profile_type
+                        profileType: user.profile_type
                     };
 
                     return returnUser;
@@ -72,6 +76,7 @@ export const authOptions = {
     callbacks: {
         async jwt({ token, user, trigger, session }) {
             if (user) {
+
                 token.id = user.userid;
                 token.userId = user.userid;
                 token.username = user.username;
@@ -88,10 +93,10 @@ export const authOptions = {
                         id: user.userid,
                         userId: user.userid,
                         email: user.email,
-                        username: user.username
+                        username: user.username,
                     }, 
                     process.env.NEXTAUTH_SECRET, 
-                    { expiresIn: '1d' }
+                    { expiresIn: '24h' }
                 );
             }
 
@@ -114,12 +119,17 @@ export const authOptions = {
                             id: token.id || token.userId,
                             userId: token.id || token.userId,
                             email: token.email,
-                            username: token.username
+                            username: token.username,
+                            // exp: Math.floor(token.expiresAt / 1000)
                         }, 
                         process.env.NEXTAUTH_SECRET, 
-                        { expiresIn: '1d' }
+                        { expiresIn: '24h' }
                     );
                 }
+            }
+
+            if (token.expiresAt && Date.now() > token.expiresAt) {
+                return {};
             }
 
             if (token.id || token.userId) {
@@ -143,7 +153,7 @@ export const authOptions = {
                             fullname: freshUser.fullname,
                             gender: freshUser.gender,
                             dob: freshUser.dob,
-                            profileType: freshUser.profile_type, // Make sure this is included
+                            profileType: freshUser.profile_type,
                             personal_account: freshUser.personal_account,
                             professional_account: freshUser.professional_account
                         };
@@ -154,10 +164,11 @@ export const authOptions = {
                                 userId: freshUser.userid,
                                 email: freshUser.email,
                                 username: freshUser.username,
-                                profileType: freshUser.profile_type
+                                profileType: freshUser.profile_type,
+                                // exp: Math.floor(token.expiresAt / 1000)
                             }, 
-                            process.env.NEXTAUTH_SECRET, 
-                            { expiresIn: '1d' }
+                            process.env.NEXTAUTH_SECRET,
+                            { expiresIn: '24h' }
                         );
                     }
                 } finally {
@@ -169,6 +180,10 @@ export const authOptions = {
         
         async session({ session, token }) {
             if (!session.user) session.user = {};
+
+            if (token.expiresAt && Date.now() > token.expiresAt) {
+                return null;
+            }
             
             session.user = {
                 ...session.user,
@@ -179,7 +194,7 @@ export const authOptions = {
                 fullname: token.fullname,
                 gender: token.gender,
                 dob: token.dob,
-                profileType: token.profileType, // Make sure this is included
+                profileType: token.profileType,
                 personal_account: token.personal_account,
                 professional_account: token.professional_account,
             };
@@ -197,8 +212,3 @@ export const authOptions = {
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
-
-
-//purely for loggin in as the register api route works for inserting into table
-
-//next auth checks logging in 

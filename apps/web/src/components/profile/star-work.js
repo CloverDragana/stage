@@ -168,7 +168,7 @@ function StarWork({ userId, profileType, isEditing = false, imageUpdate, isOwnPr
                             }}
                         />
                     ) : (
-                        <img src="/image_icon.png" alt="image icon" className=" w-48 h-48" />
+                        <img src="/userIcon.jpeg" alt="user Icon" className=" w-48 h-48" />
                     )}
                     
                     {isEditing && (

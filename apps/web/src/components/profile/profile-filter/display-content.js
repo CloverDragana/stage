@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import StarWork from "@/components/profile/star-work";
 import NetworkList from "./display-network";
-import DisplayPost from "../posting/display-post";
-
-function ContentDisplay({ userData }) {
+import DisplayPost from "../../posting/display-post";
+import DisplayPortfolio from "./display-portfolio";
+import DisplayInteractions from "@/components/interactions/display-interactions";
+//documented
+function ContentDisplay({ userData, isOwnProfile }) {
 
     const [ activeFilter, setActiveFilter ] = useState("Profile");
     
@@ -16,16 +17,14 @@ function ContentDisplay({ userData }) {
         { title: "Network"}
     ];
 
-     
-
     const changeContent = () => {
         switch(activeFilter){
             case "Profile":
-                return <DisplayPost userData={userData} />;
+                return <DisplayPost userData={userData} isOwnProfile={isOwnProfile} onProfile={true}/>;
             case "Collections":
-                return null;
+                return <DisplayPortfolio userData={userData} isOwnProfile={isOwnProfile} onProfile={true}/>;
             case "Interactions":
-                return null;
+                return <DisplayInteractions userData={userData} isOwnProfile={isOwnProfile}/>;
             case "Network":
                 return <NetworkList userData={userData} />;
             default:
@@ -35,9 +34,6 @@ function ContentDisplay({ userData }) {
 
     return(
         <div className=" w-full">
-            {/* <div className="w-full">
-                <StarWork />
-            </div> */}
             <ul className="flex flex-row py-1 shadow-lg">
                 {ContentTitles.map((filter) => (
                     <li key={filter.title} className={`w-full flex items-center justify-center border-white border -x-2 h-12
@@ -49,7 +45,7 @@ function ContentDisplay({ userData }) {
                     </li>
                 ))}
             </ul>
-            <div className="w-full mt-4">
+            <div className="w-full mt-10 pb-6 px-6">
                 {changeContent()}  
             </div>
         </div>

@@ -14,7 +14,7 @@
     "@stage/config": "*",
     "@stage/database": "*",
     "bcryptjs": "^2.4.3",
-    "next": "15.1.6",
+    "next": "^15.3.1",
     "next-auth": "^4.24.11",
     "pg": "^8.13.1",
     "react": "^19.0.0",

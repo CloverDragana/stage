@@ -1,5 +1,7 @@
 // const profileModel = require('../models/profiles');
 import * as profileModel from '../models/profiles.js';
+import * as postModel from '../models/posts.js';
+import * as portfolioModel from '../models/portfolios.js';
 
 export const getProfileContent = async (userId, profileType) => {
   // Validate required fields
@@ -7,19 +9,22 @@ export const getProfileContent = async (userId, profileType) => {
     throw new Error('User ID and Profile Type required to retrieve profile');
   }
   
-  // Get profile data
+  // call model passing parameters from the route
   const profileData = await profileModel.getProfileByUserIdAndType(userId, profileType);
   
+  // return with error if model response is empty
   if (!profileData) {
     throw new Error('Profile data not found');
   }
 
   let profilePicture = null;
+
+  // check if profile picture exists with models reponse and store in variable
   if (profileData.profile_picture) {
-    // Return just the filename - the frontend will construct the full path
     profilePicture = profileData.profile_picture;
   }
   
+  // return model results in specified properties
   return {
     message: 'Profile data retrieved successfully',
     userId: profileData.userid,
@@ -65,7 +70,6 @@ export const getProfilePicture = async (userId, profileType) => {
   if (!profileData) {
     throw new Error('Profile data not found');
   }
-  console.log(`getProfilePicture controller: getting profile picture for user ${userId}, profile type ${profileType}, with image ${profileData.profilePicturePath}`);
   
   return {
     message: 'Profile data retrieved successfully',
@@ -302,4 +306,18 @@ export const createSecondProfile = async (userId, requestUserId, profileType) =>
   await profileModel.updateUserAccountSetting(userId, accountField, true);
   
   return { message: 'New Profile successfully added' };
+};
+
+export const getInteractions = async (profileId) => {
+  if (!profileId) {
+    throw new Error('Profile ID is required to get user interactions');
+  }
+
+  const postInteractions = await postModel.getProfilePostInteractions(profileId);
+  const portfolioInteractions = await portfolioModel.getProfilePortfolioInteractions(profileId);
+
+  const combinedInteractions = [...postInteractions, ...portfolioInteractions]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  return combinedInteractions;
 };

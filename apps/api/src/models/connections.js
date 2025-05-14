@@ -20,6 +20,17 @@ export const createFollow = async (followerProfileId, followedProfileId) => {
     return result.rows[0];
 };
 
+export const deleteFollow = async (followerProfileId, followedProfileId) => {
+    const result = await db.query(
+        `DELETE FROM follows
+        WHERE follower_profileid = $1
+        AND followed_profileid = $2
+        RETURNING *`,
+        [followerProfileId, followedProfileId]
+    );
+      return result.rowCount > 0;
+  };
+
 export const getProfileFollowers = async (profileId) => {
 
     const result = await db.query(

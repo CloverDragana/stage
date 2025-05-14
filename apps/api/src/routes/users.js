@@ -5,20 +5,20 @@ import * as userController from '../controllers/userController.js';
 
 const router = express.Router();
 
-// Route that replaces register-user
+// Route that replaces register-user from pre-migration
+// Handles account creations for users
 router.post('/register', async (req, res) => {
-  console.log("Registration data received:", req.body);
-
     try {
         const result = await userController.registerUser(req.body);
         return res.status(201).json({
           ...result,
           redirectUrl: "/profile"
         });
+
       } catch (error) {
         console.error('Error during registration:', error);
         
-        // Handle specific errors
+        // Handle specific errors to show in the pop-up
         if (error.message === 'All fields are required') {
           return res.status(400).json({ error: 'All fields are required register user file' });
         }
@@ -29,21 +29,12 @@ router.post('/register', async (req, res) => {
           return res.status(400).json({ error: 'Username already taken' });
         }
         
-        // PostgreSQL errors
-        if (error.code === '23505') {
-          if (error.constraint === 'users_email_key') {
-            return res.status(400).json({ error: 'Email already registered' });
-          }
-          if (error.constraint === 'users_username_key') {
-            return res.status(400).json({ error: 'Username already taken' });
-          }
-        }
-        
         return res.status(500).json({ error: 'Internal Server Error' });
       }
 });
 
-// Route to allow user to ypdate their  replaces update-profile
+// Route to allow user to update their non-profile specific information 
+// replaces update-profile from pre-migrationu
 router.put('/update-user', verifyToken, async (req, res) => {
     try {
         if (!req.user) {
@@ -91,27 +82,5 @@ router.delete('/delete-user', verifyToken, async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
       }
   });
-
-// router.get('/search-user', async (req, res) => {
-//   try {
-
-//     const { query } = req.query;
-
-//     if (!query || query.trim().length < 2) {
-//       return res.status(400).json({ error: 'Search query must be at least 2 characters' });
-//     }
-
-//     const result = await userController.searchUsers(query);
-//     return res.status(200).json(result);
-//   } catch (error){
-//     console.error('Error searching users:', error);
-
-//     if (error.message === 'Search query must be greater than 2 characters long') {
-//       return res.status(400).json({ error: error.message });
-//     } 
-//     return res.status(500).json({ error: 'Error searching for users' });
-//   }
-// });
-
 
 export default router;

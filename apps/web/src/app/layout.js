@@ -1,6 +1,13 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from 'next/font/google'
 import { Providers } from "./providers"
+import SessionExpiryHandler from "@/components/session-expiry";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,6 +31,7 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
+          <SessionExpiryHandler />
           {children}
         </Providers>
       </body>

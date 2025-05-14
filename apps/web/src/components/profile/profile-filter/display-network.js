@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import UserProfileDisplay from "../profile/user-profile-display";
 import { useRouter } from "next/navigation";
+
+import UserProfileDisplay from "../user-profile-display";
+import Search from "../../navigation/searchbar";
 
 const NetworkList = ({ userData }) => {
     const {data: session} = useSession();
@@ -60,7 +62,7 @@ const NetworkList = ({ userData }) => {
 
     return (
         <div>
-            <div className="flex justify-evenly space-x-4">
+            <div className="flex justify-evenly space-x-4 pb-4 mt-4">
                 <button className={`py-2 px-4 ${activeFilter === 'followers' ? 'border-b-2 border-secondary font-bold' : ''}`} onClick={() => setActiveFilter("followers")}>Followers</button>
                 <button className={`py-2 px-4 ${activeFilter === 'following' ? 'border-b-2 border-secondary font-bold' : ''}`}onClick={() => setActiveFilter("following")}>Following</button>
             </div>
@@ -74,7 +76,7 @@ const NetworkList = ({ userData }) => {
                             key={`${user.userId}-${user.profileType}`}
                             user = {user}
                             onClick={handleClickedResult}
-                            isOnPost={false}
+                            isOnContent={false}
                             accessToken={session.accessToken}
                             />
                         ))}

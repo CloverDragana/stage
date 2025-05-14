@@ -102,4 +102,23 @@ router.get('/get-following', verifyToken, async (req, res) => {
       }
 });
 
+// router.delete('/delete-user', verifyToken, async (req, res) => {
+//     try {
+//         if (!req.user) {
+//           return res.status(401).json({ message: 'Unauthorised access to page' });
+//         }
+        
+//         const result = await conntrollerController.deleteFollow(req.user.id);
+//         return res.status(200).json(result);
+//       } catch (error) {
+//         console.error('Error deleting follow:', error);
+        
+//         if (error.message === 'Follow not found') {
+//           return res.status(404).json({ message: 'Follow not found' });
+//         }
+        
+//         return res.status(500).json({ error: 'Internal server error' });
+//       }
+//   });
+
 export default router;

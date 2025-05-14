@@ -14,6 +14,7 @@ export default {
       colors: {
         primary: "#98C6CE",
         secondary: "#24474D",
+        tertiary: "#77C4D2",
       },
       fontFamily: {
         chonburi: ['Chonburi'],

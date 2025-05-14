@@ -1,9 +1,3 @@
-// const express = require('express');
-// const router = express.Router();
-// const { verifyToken } = require('../middleware/auth');
-// const { db } = require('@stage/database');
-// const profileController = require('../controllers/profileController');
-
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
@@ -11,8 +5,12 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { verifyToken } from '../middleware/auth.js';
 import * as profileController from '../controllers/profileController.js';
+import * as profileModel from '../models/profiles.js';
+import * as postController from '../controllers/postController.js';
+import * as portfolioController from '../controllers/portfolioController.js';
 
 const router = express.Router();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename)
 
@@ -45,18 +43,18 @@ const upload = multer({
 });
 
 // Route to retrieve profile type specific information
+// documented - userdisplayprofile
 router.get('/get-profile-content', verifyToken, async (req, res) => {
-
   try {
+      // pass the 2 URL parameters to the controller
+
       const result = await profileController.getProfileContent(
         req.query.id,
         req.query.profileType
       );
-      
+      // return successful reponse
       return res.status(200).json(result);
     } catch (error) {
-      console.error('Failed to get data from profiles table:', error);
-      
       if (error.message === 'User ID and Profile Type required to retrieve profile') {
         return res.status(400).json({ error: error.message });
       }
@@ -64,13 +62,12 @@ router.get('/get-profile-content', verifyToken, async (req, res) => {
       if (error.message === 'Profile data not found') {
         return res.status(404).json({ error: error.message });
       }
-      
+      // return generic error
       return res.status(500).json({ error: 'Error getting data from database' });
     }
 });
 
 router.get('/get-profile-id', verifyToken, async (req, res) => {
-
 try {
     const result = await profileController.getProfileId(
       req.query.userId,
@@ -86,16 +83,6 @@ try {
 });
 
 router.get('/get-profile-picture', verifyToken, async (req, res) => {
-  console.log('/get-profile-picture route: Profile picture get request:', { 
-    body: req.body,
-    file: req.file ? {
-      filename: req.file.filename,
-      path: req.file.path,
-      destination: req.file.destination
-    } : 'No file',
-    user: req.user.id
-  });
-
 try {
     const result = await profileController.getProfilePicture(
       req.query.userId,
@@ -371,35 +358,94 @@ router.put('/create-second-profile', verifyToken, async (req, res) => {
 });
 
 // Add this to your routes/profiles.js
-router.get('/debug-files', async (req, res) => {
-  try {
-    const fs = require('fs');
-    const path = require('path');
-    const { fileURLToPath } = require('url');
+// router.get('/debug-files', async (req, res) => {
+//   try {
+//     const fs = require('fs');
+//     const path = require('path');
+//     const { fileURLToPath } = require('url');
     
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
+//     const __filename = fileURLToPath(import.meta.url);
+//     const __dirname = path.dirname(__filename);
     
-    const webPublicPath = path.join(__dirname, '../../../web/public');
-    const imageUploadDir = path.join(webPublicPath, 'uploads/profile');
+//     const webPublicPath = path.join(__dirname, '../../../web/public');
+//     const imageUploadDir = path.join(webPublicPath, 'uploads/profile');
     
-    // Check if directory exists
-    const directoryExists = fs.existsSync(imageUploadDir);
+//     // Check if directory exists
+//     const directoryExists = fs.existsSync(imageUploadDir);
     
-    // List files if directory exists
-    let files = [];
-    if (directoryExists) {
-      files = fs.readdirSync(imageUploadDir);
+//     // List files if directory exists
+//     let files = [];
+//     if (directoryExists) {
+//       files = fs.readdirSync(imageUploadDir);
+//     }
+    
+//     return res.status(200).json({
+//       directoryPath: imageUploadDir,
+//       directoryExists,
+//       files
+//     });
+//   } catch (error) {
+//     console.error('Error checking files:', error);
+//     return res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
+router.get('/get-home-content', verifyToken, async (req, res) => {
+  try{
+    if(!req.user){
+      return res.status(401).json({ error: 'Not authenticated' });
     }
-    
+
+    const {userId, profileType} = req.query;
+
+    if (!userId || !profileType){
+      return res.status(400).json({ error: 'User Id and profile type are required to get home feed content' });
+    }
+
+    const posts = await postController.getHomePagePosts(userId, profileType);
+    const portfolios = await portfolioController.getHomePagePortfolios(userId, profileType);
+
+    const combinedContentFeed = [
+      ...posts.map(post => ({ ...post, contentType: 'post' })),
+      ...portfolios.map(portfolio => ({ ...portfolio, contentType: 'portfolio' }))
+    ]
+
+    combinedContentFeed.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
     return res.status(200).json({
-      directoryPath: imageUploadDir,
-      directoryExists,
-      files
+      message: 'Home feed fetched successfully',
+      homeFeed: combinedContentFeed
     });
-  } catch (error) {
-    console.error('Error checking files:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+
+  } catch (error){
+    console.error("Error retrieving content for home feed", error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/get-interactions', verifyToken, async (req, res) => {
+  try {
+    if(!req.user){
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const {userId, profileType} = req.query;
+
+    const profileData = await profileModel.getProfileByUserIdAndType(userId, profileType);
+
+    if (!profileData){
+      return res.status(400).json({ error: 'Profile not found' });
+    }
+
+    const interactions = await profileController.getInteractions(profileData.profileid);
+
+    return res.status(200).json({
+      message: "Interactions successfully retrieved",
+      interactions: interactions
+    })
+  } catch (error){
+    console.error("Error retrieving profiles interactions on posts and portfolios", error);
+    return res.status(500).json({ error: "Error retrieving profiles interactions on posts and portfolios" });
   }
 });
 export default router;

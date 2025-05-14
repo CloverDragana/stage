@@ -49,9 +49,11 @@ function CreateSecondProfile({onClose, profileCreationType}){
                         professional_account: profileCreationType === 'professional' ? true : session.user.professional_account,
                         personal_account: profileCreationType === 'personal' ? true : session.user.personal_account
                     });
+                    console.log("session:", session);
                     onClose();
-                    router.push("/profile");
-                    router.refresh();
+                    // router.push(`/profile/${session.user.id}?profileType=${session.user.profileType}`);
+                    // router.refresh();
+                    window.location.reload();
                 }
 
             } else {
