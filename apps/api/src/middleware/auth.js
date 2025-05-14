@@ -1,4 +1,5 @@
 import { verifyToken as jwtVerify } from '@stage/auth';
+import jwt from 'jsonwebtoken';
 
 // Express middleware for authentication
 export const verifyToken = (req, res, next) => {
@@ -11,9 +12,11 @@ export const verifyToken = (req, res, next) => {
   const token = authHeader.split(' ')[1];
   
   try {
+
     const decoded = jwtVerify(token);
     req.user = decoded;
     next();
+    
   } catch (error) {
     console.error('Token verification error:', error);
     return res.status(401).json({ error: 'Invalid or expired token' });

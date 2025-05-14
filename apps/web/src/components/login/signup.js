@@ -39,16 +39,13 @@ function SignUpForm({ onError }){
                 body: JSON.stringify(userInfo),
             });
 
-            if (!response.ok){
-                const errorDetails= await response.json();
-                throw new Error(errorDetails.error || "Registration failed");
-            }
-
             const data = await response.json();
 
-            // if (!data.ok) {
-            //     throw new Error(data.error || "Registration failed");
-            // }
+            if (!response.ok){
+                onError(data.error || "Registration failed");
+                setIsSubmitting(false);
+                return;
+            }
             
             const result = await signIn('credentials', {
                 username: userInfo.username,
@@ -57,33 +54,35 @@ function SignUpForm({ onError }){
             });
             
             if (result?.error) {
-                onError("Registration details aren't valid");
+                onError("Login after registration failed. Please try logging in manually.");
+                setIsSubmitting(false);
                 return;
             } else {
-                router.push("/profile");
+                router.push("/home-page");
                 router.refresh();
             }
             
         } catch (error){ 
             console.error('Registration error:', error); 
+            onError("An unexpected error occurred whilst creating your account. Please try again.");
             
-            if (error.message.includes('email already registered')) {
-                onError("This email is already registered. Please use a different email.");
-                return;
-                alert('This email is already registered. Please use a different email.');
-            } else if (error.message.includes('username already taken')) {
-                onError("This username is already taken. Please choose a different username.");
-                return;
-                alert('This username is already taken. Please choose a different username.');
-            } else if (error.message.includes('Invalid email')) {
-                onError("Please enter a valid email address.");
-                return;
-                alert('Please enter a valid email address.');
-            } else {
-                onError("Registration failed. Please try again.");
-                return;
-                alert(error.message || 'Registration failed. Please try again.');
-            }
+            // if (error.message.includes('email already registered')) {
+            //     onError("This email is already registered. Please use a different email.");
+            //     return;
+            //     alert('This email is already registered. Please use a different email.');
+            // } else if (error.message.includes('username already taken')) {
+            //     onError("This username is already taken. Please choose a different username.");
+            //     return;
+            //     alert('This username is already taken. Please choose a different username.');
+            // } else if (error.message.includes('Invalid email')) {
+            //     onError("Please enter a valid email address.");
+            //     return;
+            //     alert('Please enter a valid email address.');
+            // } else {
+            //     onError("Registration failed. Please try again.");
+            //     return;
+            //     alert(error.message || 'Registration failed. Please try again.');
+            // }
         } finally {
             setIsSubmitting(false);
         }
@@ -105,16 +104,16 @@ function SignUpForm({ onError }){
                     usedInSignUp= {true}
                 />
             </div>
-            <FormRow label="Full Name" id="fullname" name="fullname" type="text" required />
-            <FormRow label="Email Address" id="email" name="email" type="email" required />
-            <FormRow label="Username" id="username" name="username" type="text" required />
-            <FormRow label="Password" id="password" name="password" type="password" required />
+            <FormRow label="Full Name" id="fullname" name="fullname" />
+            <FormRow label="Email Address" id="email" name="email" type="email" />
+            <FormRow label="Username" id="username" name="username" />
+            <FormRow label="Password" id="password" name="password" type="password" />
             <div className="flex justify-end mt-6">
                 <button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className={`bg-white text-slate-800 px-6 py-2 rounded-full 
-                        hover:bg-opacity-90 transition-colors
+                    className={`bg-white font-bold text-slate-800 px-6 py-2 rounded-full 
+                        hover:-translate-y-2 transition-transform duration-200
                         ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {isSubmitting ? 'Creating Account...' : 'Start Your Adventure'}

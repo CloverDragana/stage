@@ -1,9 +1,3 @@
-// const express = require('express');
-// const router = express.Router();
-// const { verifyToken } = require('../middleware/auth');
-// const { db } = require('@stage/database');
-// const profileController = require('../controllers/profileController');
-
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
@@ -11,8 +5,12 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { verifyToken } from '../middleware/auth.js';
 import * as profileController from '../controllers/profileController.js';
+import * as profileModel from '../models/profiles.js';
+import * as postController from '../controllers/postController.js';
+import * as portfolioController from '../controllers/portfolioController.js';
 
 const router = express.Router();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename)
 
@@ -42,6 +40,121 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 }
+});
+
+// Route to retrieve profile type specific information
+// documented - userdisplayprofile
+router.get('/get-profile-content', verifyToken, async (req, res) => {
+  try {
+      // pass the 2 URL parameters to the controller
+
+      const result = await profileController.getProfileContent(
+        req.query.id,
+        req.query.profileType
+      );
+      // return successful reponse
+      return res.status(200).json(result);
+    } catch (error) {
+      if (error.message === 'User ID and Profile Type required to retrieve profile') {
+        return res.status(400).json({ error: error.message });
+      }
+      
+      if (error.message === 'Profile data not found') {
+        return res.status(404).json({ error: error.message });
+      }
+      // return generic error
+      return res.status(500).json({ error: 'Error getting data from database' });
+    }
+});
+
+router.get('/get-profile-id', verifyToken, async (req, res) => {
+try {
+    const result = await profileController.getProfileId(
+      req.query.userId,
+      req.query.profileType
+    );
+    
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Failed to get data from profiles table:', error);
+    
+    return res.status(500).json({ error: 'Error getting data from database' });
+  }
+});
+
+router.get('/get-profile-picture', verifyToken, async (req, res) => {
+try {
+    const result = await profileController.getProfilePicture(
+      req.query.userId,
+      req.query.profileType
+    );
+    
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Failed to get data from profiles table:', error);
+    
+    return res.status(500).json({ error: 'Error getting data from database' });
+  }
+});
+
+router.get('/get-banner-image', verifyToken, async (req, res) => {
+
+try {
+    const result = await profileController.getBannerImage(
+      req.query.userId,
+      req.query.profileType
+    );
+    
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Failed to get data from profiles table:', error);
+    
+    return res.status(500).json({ error: 'Error getting data from database' });
+  }
+});
+
+router.get('/get-star-work', verifyToken, async (req, res) => {
+
+try {
+    const result = await profileController.getStarWork(
+      req.query.userId,
+      req.query.profileType
+    );
+    
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Failed to get data from profiles table:', error);
+    
+    return res.status(500).json({ error: 'Error getting data from database' });
+  }
+});
+
+// Route to update profile type that the users is trying to access
+router.put('/update-profile-type', verifyToken, async (req, res) => {
+  try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Not authenticated' });
+      }
+      
+      const result = await profileController.updateProfileType(
+        req.user.id,
+        req.body.profileType
+      );
+      
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error('Error updating profile type:', error);
+      
+      if (error.message === 'Invalid profile type') {
+        return res.status(400).json({ error: error.message });
+      }
+      
+      if (error.message === 'User not found') {
+        return res.status(404).json({ error: error.message });
+      }
+      
+      return res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // Route to update profile specific information in the profiles table 
@@ -83,6 +196,15 @@ router.put('/update-profile', verifyToken, async (req, res) => {
 
 router.put('/update-profile-picture', verifyToken, upload.single('file'), async (req, res) => {
   try{
+    console.log('Profile picture upload request:', { 
+      body: req.body,
+      file: req.file ? {
+        filename: req.file.filename,
+        path: req.file.path,
+        destination: req.file.destination
+      } : 'No file',
+      user: req.user.id
+    });
     if(!req.user){
       return res.status(401).json({ error: 'Not authenticated' });
     }
@@ -119,32 +241,87 @@ router.put('/update-profile-picture', verifyToken, upload.single('file'), async 
   }
 });
 
-// Route to update profile type that the users is trying to access
-router.put('/update-profile-type', verifyToken, async (req, res) => {
-    try {
-        if (!req.user) {
-          return res.status(401).json({ error: 'Not authenticated' });
-        }
-        
-        const result = await profileController.updateProfileType(
-          req.user.id,
-          req.body.profileType
-        );
-        
-        return res.status(200).json(result);
-      } catch (error) {
-        console.error('Error updating profile type:', error);
-        
-        if (error.message === 'Invalid profile type') {
-          return res.status(400).json({ error: error.message });
-        }
-        
-        if (error.message === 'User not found') {
-          return res.status(404).json({ error: error.message });
-        }
-        
-        return res.status(500).json({ error: 'Internal server error' });
-      }
+router.put('/update-banner-image', verifyToken, upload.single('file'), async (req, res) => {
+  try{
+    if(!req.user){
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    console.log('Profile picture upload request:', { 
+      body: req.body,
+      file: req.file ? req.file.filename : 'No file',
+      user: req.user.id
+    });
+
+    if (!req.body.userId || !req.body.profileType) {
+      return res.status(400).json({ error: 'UserId and Profile Type are required' });
+    }
+
+    // const profilePicturePath = `/uploads/profile/${req.file.filename}`;
+    console.log("file name", req.file.filename);
+
+    const result = await profileController.updateBannerImage(
+      req.body.userId,
+      req.user.id,
+      req.body.profileType,
+      req.file.filename
+    );
+
+    return res.status(200).json(result);
+
+  } catch (error){
+    console.error('Error updating profile picture:', error);
+    return res.status(500).json({ error: 'Unable to update profile picture' });
+  }
+});
+
+router.put('/update-star-work-image', verifyToken, upload.single('file'), async (req, res) => {
+  try{
+    console.log("Received file:", req.file.originalname);
+    console.log("Saving to:", req.file.path);
+    if(!req.user){
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    console.log('Profile picture upload request:', { 
+      body: req.body,
+      file: req.file ? req.file.filename : 'No file',
+      user: req.user.id,
+      imageIndex: req.body.imageIndex
+    });
+
+    if (!req.body.userId || !req.body.profileType || req.body.imageIndex === undefined) {
+      return res.status(400).json({ error: 'UserId, Profile Type, and Star Work Index are required' });
+    }
+
+    // const profilePicturePath = `/uploads/profile/${req.file.filename}`;
+    console.log("file name", req.file.filename);
+
+    const imageIndex = parseInt(req.body.imageIndex, 10);
+    console.log("Received imageIndex:", imageIndex, typeof imageIndex);
+
+    const result = await profileController.updateStarWork(
+      req.body.userId,
+      req.user.id,
+      req.body.profileType,
+      req.file.filename,
+      imageIndex
+    );
+
+    return res.status(200).json(result);
+
+  } catch (error){
+    console.error('Error updating profile picture:', error);
+    return res.status(500).json({ error: 'Unable to update profile picture' });
+  }
 });
 
 // Route to allow user to create a second profile
@@ -180,61 +357,95 @@ router.put('/create-second-profile', verifyToken, async (req, res) => {
       }
 });
 
-// Route to retrieve profile type specific information
-router.get('/get-profile-content', verifyToken, async (req, res) => {
+// Add this to your routes/profiles.js
+// router.get('/debug-files', async (req, res) => {
+//   try {
+//     const fs = require('fs');
+//     const path = require('path');
+//     const { fileURLToPath } = require('url');
+    
+//     const __filename = fileURLToPath(import.meta.url);
+//     const __dirname = path.dirname(__filename);
+    
+//     const webPublicPath = path.join(__dirname, '../../../web/public');
+//     const imageUploadDir = path.join(webPublicPath, 'uploads/profile');
+    
+//     // Check if directory exists
+//     const directoryExists = fs.existsSync(imageUploadDir);
+    
+//     // List files if directory exists
+//     let files = [];
+//     if (directoryExists) {
+//       files = fs.readdirSync(imageUploadDir);
+//     }
+    
+//     return res.status(200).json({
+//       directoryPath: imageUploadDir,
+//       directoryExists,
+//       files
+//     });
+//   } catch (error) {
+//     console.error('Error checking files:', error);
+//     return res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
 
-    try {
-        const result = await profileController.getProfileContent(
-          req.query.id,
-          req.query.profileType
-        );
-        
-        return res.status(200).json(result);
-      } catch (error) {
-        console.error('Failed to get data from profiles table:', error);
-        
-        if (error.message === 'User ID and Profile Type required to retrieve profile') {
-          return res.status(400).json({ error: error.message });
-        }
-        
-        if (error.message === 'Profile data not found') {
-          return res.status(404).json({ error: error.message });
-        }
-        
-        return res.status(500).json({ error: 'Error getting data from database' });
-      }
-});
-
-router.get('/get-profile-id', verifyToken, async (req, res) => {
-
-  try {
-      const result = await profileController.getProfileId(
-        req.query.userId,
-        req.query.profileType
-      );
-      
-      return res.status(200).json(result);
-    } catch (error) {
-      console.error('Failed to get data from profiles table:', error);
-      
-      return res.status(500).json({ error: 'Error getting data from database' });
+router.get('/get-home-content', verifyToken, async (req, res) => {
+  try{
+    if(!req.user){
+      return res.status(401).json({ error: 'Not authenticated' });
     }
-});
-router.get('/get-profile-picture', verifyToken, async (req, res) => {
 
-  try {
-      const result = await profileController.getProfilePicture(
-        req.query.userId,
-        req.query.profileType
-      );
-      
-      return res.status(200).json(result);
-    } catch (error) {
-      console.error('Failed to get data from profiles table:', error);
-      
-      return res.status(500).json({ error: 'Error getting data from database' });
+    const {userId, profileType} = req.query;
+
+    if (!userId || !profileType){
+      return res.status(400).json({ error: 'User Id and profile type are required to get home feed content' });
     }
+
+    const posts = await postController.getHomePagePosts(userId, profileType);
+    const portfolios = await portfolioController.getHomePagePortfolios(userId, profileType);
+
+    const combinedContentFeed = [
+      ...posts.map(post => ({ ...post, contentType: 'post' })),
+      ...portfolios.map(portfolio => ({ ...portfolio, contentType: 'portfolio' }))
+    ]
+
+    combinedContentFeed.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    return res.status(200).json({
+      message: 'Home feed fetched successfully',
+      homeFeed: combinedContentFeed
+    });
+
+  } catch (error){
+    console.error("Error retrieving content for home feed", error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
+router.get('/get-interactions', verifyToken, async (req, res) => {
+  try {
+    if(!req.user){
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
 
+    const {userId, profileType} = req.query;
+
+    const profileData = await profileModel.getProfileByUserIdAndType(userId, profileType);
+
+    if (!profileData){
+      return res.status(400).json({ error: 'Profile not found' });
+    }
+
+    const interactions = await profileController.getInteractions(profileData.profileid);
+
+    return res.status(200).json({
+      message: "Interactions successfully retrieved",
+      interactions: interactions
+    })
+  } catch (error){
+    console.error("Error retrieving profiles interactions on posts and portfolios", error);
+    return res.status(500).json({ error: "Error retrieving profiles interactions on posts and portfolios" });
+  }
+});
 export default router;

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 import Navbar from "@/components/navigation/navbar";
 import Topbar from "@/components/navigation/topbar";
-import ProfilePicture from "@/components/profile/profile-picture";
 import DeleteAccount from "@/components/popup-actions/delete-account-popup";
 import ConfirmationPopUp from "@/components/popup-actions/popup-structure";
 
@@ -77,11 +76,6 @@ export default function AccountSetting() {
         try {
             console.log("updating profile with:", formData);
 
-            // const response = await fetch("/api/auth/update-user", {
-            //     method: "PUT",
-            //     headers: { "Content-Type": "application/json" },
-            //     body: JSON.stringify({ ...formData, dob: formatDob, userId: session.user.userId}),
-            // });
             const response = await fetch(`${getApiUrl()}/api/users/update-user`, {
                 method: "PUT",
                 headers: { 
@@ -97,8 +91,6 @@ export default function AccountSetting() {
 
             const data = await response.json();
             console.log("Update successful", data);
-
-            // console.log("session before update:", update);
 
             await update({ ...session, user: data.user });
             await getSession();
@@ -139,41 +131,42 @@ export default function AccountSetting() {
     <div className="min-h-screen">
         <Navbar />
         <Topbar />
-        <div className="ml-[194px] mt-[78px] p-6">
+        <div className="ml-[202px] mt-[78px] p-6">
             <div className="rounded-3xl bg-secondary p-2">
-                <div className="flex flex-row items-center gap-8">
-                    <ProfilePicture />
-                    <h2 className="font-bold text-4xl p-2 text-white">Profile Information</h2>
+                <h2 className="font-bold text-4xl p-2 text-white">Account Information</h2>
+                <div className="flex flex-row justify-between items-center gap-8">
+                    {/* <ProfilePicture /> */}
+                    
                 </div>
                 <div className="w-full px-3 py-6 justify-between">
                     <form className="flex flex-col gap-10" onSubmit={handleUpdatedInfo}>
                         <div className="flex justify-evenly">
                             <div className="flex flex-row gap-4">
-                                <label htmlFor="fullname" className="flex text-white items-center ">Full Name</label>
+                                <label htmlFor="fullname" className="flex text-white items-center font-bold text-lg">Full Name</label>
                                 <input type="text" name="fullname" placeholder="Full Name" value={formData.fullname} onChange={handleInfoChange} className="rounded-full p-2 text-center" />
                             </div>
                             <div className="flex flex-row gap-4">
-                                <label htmlFor="username" className="flex text-white items-center ">Username</label>
+                                <label htmlFor="username" className="flex text-white items-center font-bold text-lg">Username</label>
                                 <input type="text" name="username" placeholder="Username" value={formData.username} onChange={handleInfoChange} className="rounded-full p-2 text-center" />
                             </div>
                         </div>
                         <div className="flex justify-between">
                             <div className="flex flex-row gap-4">
-                                <label htmlFor="email" className="flex text-white items-center ">Email Address</label>
+                                <label htmlFor="email" className="flex text-white font-bold text-lg items-center ">Email Address</label>
                                 <input type="text" name="email" placeholder="Email Address" value={formData.email} onChange={handleInfoChange} className="rounded-full p-2 text-center" />
                             </div>
                             <div className="flex flex-row gap-4">
-                                <label htmlFor="dob" className="flex text-white items-center ">Date of Birth</label>
+                                <label htmlFor="dob" className="flex text-white items-center font-bold text-lg">Date of Birth</label>
                                 <input type="text" name="dob" placeholder="DD/MM/YYYY" value={formData.dob} onChange={handleInfoChange} className="rounded-full p-2 text-center" />
                             </div>
                             <div className="flex flex-row gap-4">
-                                <label htmlFor="gender" className="flex text-white items-center ">Gender</label>
+                                <label htmlFor="gender" className="flex text-white items-center font-bold text-lg">Gender</label>
                                 <input type="text" name="gender" placeholder="Gender" value={formData.gender} onChange={handleInfoChange} className="rounded-full p-2 text-center" />
                             </div>
                         </div>
                         <div className="flex justify-between items-center gap-4 py-4">
-                            <button type="button" onClick={() => setDeletePopUp(true)} className="rounded-full bg-white p-2 text-red-600 border-2 border-red-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]">Delete Account</button>
-                            <button type="submit" className="rounded-full p-2 bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]">Update Account</button>
+                            <button type="button" onClick={() => setDeletePopUp(true)} className="rounded-full bg-white p-2 font-bold text-red-600 transition-all duration-300 hover:-translate-y-2 hover:transition-transform hover:duration-200">Delete Account</button>
+                            <button type="submit" className="rounded-full p-2 bg-white font-bold text-green-600 transition-all duration-300 hover:-translate-y-2 hover:transition-transform hover:duration-200">Update Account</button>
                         </div>
                     </form>
                 </div>

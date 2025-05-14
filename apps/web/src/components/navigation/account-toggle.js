@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation'; 
 import CreateSecondProfile from "../popup-actions/profile-type-popup";
 
-const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, usedInSignUp = false }) => {
+const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, usedInSignUp = false}) => {
     const { data: session, update } = useSession();
     const [profileSelection, setProfileSelection] = useState(initialProfileType || 'personal');
     const [isUpdating, setIsUpdating] = useState(false);
@@ -91,29 +91,29 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
 
     const toggleSizes = {
         default: {
-            container: 'p-1 gap-2 bg-slate-800',
+            container: 'p-1 gap-2 bg-white',
             buttonBase: 'w-[160px] py-2 text-lg',
             personal: {
-                selected: 'bg-white text-gray-800 shadow-sm',
-                unselected: 'text-white hover:border-2 hover:border-gray-300'
+                selected: 'bg-tertiary border-2 border-white text-black shadow-sm',
+                unselected: 'text-black hover:border-2 hover:border-secondary'
             },
             professional: {
-                selected: 'bg-white text-gray-800 shadow-sm',
-                unselected: 'text-white hover:border-2 hover:border-gray-300'
+                selected: 'bg-tertiary border-2 border-white text-black shadow-sm',
+                unselected: 'text-black hover:border-2 hover:border-secondary'
             }
         },
         navbar: {
-            container: 'p-0.5 gap-0.5 bg-white',
-            buttonBase: 'w-[90px] py-1 text-xs font-bold bg-primary hover:border-primnary',
+            container: 'p-0.5 gap-0.5 border-2 border-white bg-zinc-100',
+            buttonBase: 'py-1 text-xs font-bold bg-primary hover:border-primnary',
             personal: {
-                selected: 'bg-secondary text-white',
-                unselected: 'bg-white text-black hover:border-primary'
+                selected: 'w-[85px] bg-secondary text-white',
+                unselected: ' w-[85px] bg-transparent text-black hover:border-secondary'
             },
             professional: {
-                selected: 'bg-secondary text-white',
-                unselected: 'bg-white text-black hover:border-primary'
-            }
-        }
+                selected: 'w-auto bg-secondary text-white',
+                unselected: ' w-[85px] bg-transparent text-black hover:border-secondary'
+            },
+        },
     };
 
     const currentSize = toggleSizes[toggleSize] || toggleSizes.default;
@@ -125,7 +125,7 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
                     type="button"
                     onClick={() => handleToggle('personal')}
                     disabled={isUpdating}
-                    className={`rounded-full transition-all border-2 border-transparent whitespace-nowrap 
+                    className={`rounded-full transition-all border-2 border-transparent whitespace-nowrap
                         ${profileSelection === 'personal' ? currentSize.personal.selected : currentSize.personal.unselected} 
                         ${currentSize.buttonBase}
                         ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -136,7 +136,7 @@ const AccountToggle = ({ onToggle, toggleSize = 'default', initialProfileType, u
                     type="button"
                     onClick={() => handleToggle('professional')}
                     disabled={isUpdating}
-                    className={`rounded-full transition-all border-2 border-transparent whitespace-nowrap 
+                    className={`rounded-full px-1 transition-all border-2 border-transparent
                         ${profileSelection === 'professional' ? currentSize.professional.selected : currentSize.professional.unselected} 
                         ${currentSize.buttonBase}
                         ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}

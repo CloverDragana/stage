@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
 function ConfirmationPopUp ({
     title,
     message,
@@ -22,7 +20,7 @@ function ConfirmationPopUp ({
                         <button type="button" onClick={onClose} disabled={isLoading} className="rounded-full p-2 w-16 bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]">{closeLabel}</button>
                     ) : ( <>
                         <button type="button" onClick={onConfirm} disabled={isLoading} className="rounded-full p-2 w-16 bg-white border-2 border-green-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(82,_229,_121,_0.4)]">{isLoading ? "..." : confirmLabel}</button>
-                        <button type="button" onClick={onClose} disabled={isLoading} className="rounded-full p-2 w-16 text-red-600 border-2 border-red-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]">{closeLabel}</button>
+                        <button type="button" onClick={onClose} disabled={isLoading} className="rounded-full p-2 w-16 text-black border-2 border-red-600 transition-all duration-300 hover:shadow-[inset_0px_0px_20px_4px_rgba(229,_82,_82,_0.4)]">{closeLabel}</button>
                         </> 
                     )}
                 </div>
