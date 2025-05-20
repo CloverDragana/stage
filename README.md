@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Prerequisites
 
-## Getting Started
+------
 
-First, run the development server:
+* Node.js (version 20.10.0 or higher)
+* npm (version 10.8.2 or higher)
+* Next (version 14)
+* React (version 18.2.0 or higher)
+* pgAdmin 4
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Installation 
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+-----
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Clone the repository
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Install dependencies npm install
 
-## Learn More
+Install pgAdmin 4 - https://www.pgadmin.org/download/ for access to PostgreSQL
 
-To learn more about Next.js, take a look at the following resources:
+Setup env variables: apps/.env - apps/api/.env - apps/web/.env.local
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
